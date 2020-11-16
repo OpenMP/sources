@@ -1,5 +1,5 @@
 /*******************************************************************
-* Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
+* Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
 *                                                                  *
 * Permission to copy without fee all or part of this material is   *
 * granted, provided the OpenMP Architecture Review Board copyright *
@@ -17,8 +17,8 @@
 #include <stddef.h>
 
 /*
- * For uintptr_t definition, which is used just as an implementation detail
- * in this implementation.
+ * For uintptr_t and intptr_t definitions, which are used just as an
+ * implementation detail in this implementation.
  */
 #include <stdint.h>
 
@@ -71,7 +71,8 @@ typedef enum omp_proc_bind_t
 {
   omp_proc_bind_false = 0,
   omp_proc_bind_true = 1,
-  omp_proc_bind_master = 2,
+  omp_proc_bind_primary = 2,
+  omp_proc_bind_master = omp_proc_bind_primary, /* (deprecated) */
   omp_proc_bind_close = 3,
   omp_proc_bind_spread = 4
 } omp_proc_bind_t;
@@ -79,9 +80,45 @@ typedef enum omp_proc_bind_t
 typedef void *omp_depend_t;
 
 /*
+ * define interop properties
+ */
+typedef enum omp_interop_property_t
+{
+  omp_ipr_fr_id = -1,
+  omp_ipr_fr_name = -2,
+  omp_ipr_vendor = -3,
+  omp_ipr_vendor_name = -4,
+  omp_ipr_device_num = -5,
+  omp_ipr_platform = -6,
+  omp_ipr_device = -7,
+  omp_ipr_device_context = -8,
+  omp_ipr_targetsync = -9,
+  omp_ipr_first = -9
+} omp_interop_property_t;
+
+/*
+ * define interop return code properties
+ */
+typedef enum omp_interop_rc_t
+{
+  omp_irc_no_value = 1,
+  omp_irc_success = 0,
+  omp_irc_empty = -1,
+  omp_irc_out_of_range = -2,
+  omp_irc_type_int = -3,
+  omp_irc_type_ptr = -4,
+  omp_irc_type_str = -5,
+  omp_irc_other = -6
+} omp_interop_rc_t;
+
+typedef void *omp_interop_t;
+#define omp_interop_none ((omp_interop_t) 0)
+
+/*
  * define memory management types
  */
 typedef uintptr_t omp_uintptr_t;
+typedef intptr_t omp_intptr_t;
 
 typedef enum omp_memspace_handle_t {
   omp_default_mem_space,
@@ -123,10 +160,10 @@ typedef enum omp_alloctrait_key_t {
 typedef enum omp_alloctrait_value_t {
   omp_atv_false = 0,
   omp_atv_true = 1,
-  omp_atv_default = 2,
   omp_atv_contended = 3,
   omp_atv_uncontended = 4,
-  omp_atv_sequential = 5,
+  omp_atv_serialized = 5,
+  omp_atv_sequential = omp_atv_serialized, /* (deprecated) */
   omp_atv_private = 6,
   omp_atv_all = 7,
   omp_atv_thread = 8,
@@ -141,6 +178,16 @@ typedef enum omp_alloctrait_value_t {
   omp_atv_blocked = 17,
   omp_atv_interleaved = 18
 } omp_alloctrait_value_t;
+
+#define omp_atv_default ((omp_uintptr_t) -1)
+/* Or
+   enum {
+     omp_atv_default = (omp_uintptr_t) -1
+   };
+   or in C++
+   static const omp_uintptr_t omp_atv_default = -1;
+   etc.
+ */
 
 typedef struct omp_alloctrait_t {
   omp_alloctrait_key_t key;
@@ -196,6 +243,7 @@ extern int omp_in_parallel(void);
 extern void omp_set_dynamic(int dynamic_threads);
 extern int omp_get_dynamic(void);
 extern int omp_get_cancellation(void);
+/* The following two routines are deprecated.  */
 extern void omp_set_nested(int nested);
 extern int omp_get_nested(void);
 extern void omp_set_schedule(omp_sched_t kind, int chunk_size);
@@ -225,6 +273,7 @@ extern size_t omp_capture_affinity(
   size_t size,
   const char *format
 );
+extern void omp_display_env(int verbose);
 
 extern void omp_set_default_device(int device_num);
 extern int omp_get_default_device(void);
@@ -238,6 +287,11 @@ extern int omp_get_initial_device(void);
 extern int omp_get_max_task_priority(void);
 extern int omp_pause_resource(omp_pause_resource_t kind, int device_num);
 extern int omp_pause_resource_all(omp_pause_resource_t kind);
+
+extern void omp_set_num_teams(int num_teams);
+extern int omp_get_max_teams(void);
+extern void omp_set_teams_thread_limit(int thread_limit);
+extern int omp_get_teams_thread_limit(void);
 
 extern void omp_init_lock(omp_lock_t *lock);
 extern void omp_init_lock_with_hint(
@@ -263,10 +317,43 @@ extern double omp_get_wtime(void);
 extern double omp_get_wtick(void);
 
 extern void omp_fulfill_event(omp_event_handle_t event);
+  
+extern int omp_get_num_interop_properties(const omp_interop_t interop);
+extern omp_intptr_t omp_get_interop_int(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id, int *ret_code
+);
+extern void* omp_get_interop_ptr(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id,
+  int *ret_code
+);
+extern const char* omp_get_interop_str(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id,
+  int *ret_code
+);
+extern const char* omp_get_interop_name(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id
+);
+extern const char* omp_get_interop_type_desc(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id
+);
+extern const char* omp_get_interop_rc_desc(
+  const omp_interop_t interop,
+  omp_interop_rc_t ret_code
+);
 
 extern void *omp_target_alloc(size_t size, int device_num);
 extern void omp_target_free(void *device_ptr, int device_num);
 extern int omp_target_is_present(const void *ptr, int device_num);
+extern int omp_target_is_accessible(
+  const void *ptr,
+  size_t size,
+  int device_num
+);
 extern int omp_target_memcpy(
   void *dst,
   const void *src,
@@ -289,6 +376,32 @@ extern int omp_target_memcpy_rect(
   int dst_device_num,
   int src_device_num
 );
+extern int omp_target_memcpy_async(
+  void *dst,
+  const void *src,
+  size_t length,
+  size_t dst_offset,
+  size_t src_offset,
+  int dst_device_num,
+  int src_device_num,
+  int depobj_count,
+  omp_depend_t *depobj_list
+);
+extern int omp_target_memcpy_rect_async(
+  void *dst,
+  const void *src,
+  size_t element_size,
+  int num_dims,
+  const size_t *volume,
+  const size_t *dst_offsets,
+  const size_t *src_offsets,
+  const size_t *dst_dimensions,
+  const size_t *src_dimensions,
+  int dst_device_num,
+  int src_device_num,
+  int depobj_count,
+  omp_depend_t *depobj_list
+);
 extern int omp_target_associate_ptr(
   const void *host_ptr,
   const void *device_ptr,
@@ -296,6 +409,7 @@ extern int omp_target_associate_ptr(
   size_t device_offset,
   int device_num
 );
+extern void *omp_get_mapped_ptr(const void *ptr, int device_num);
 extern int omp_target_disassociate_ptr(
   const void *ptr,
   int device_num
@@ -315,13 +429,53 @@ extern void *omp_alloc(
   size_t size,
   omp_allocator_handle_t allocator = omp_null_allocator
 );
+extern void *omp_aligned_alloc(
+  size_t alignment,
+  size_t size,
+  omp_allocator_handle_t allocator = omp_null_allocator
+);
 extern void omp_free(
   void *ptr,
   omp_allocator_handle_t allocator = omp_null_allocator
 );
+extern void *omp_calloc(
+  size_t nmemb,
+  size_t size,
+  omp_allocator_handle_t allocator = omp_null_allocator
+);
+extern void *omp_aligned_calloc(
+  size_t alignment,
+  size_t nmemb,
+  size_t size,
+  omp_allocator_handle_t allocator = omp_null_allocator
+);
+extern void *omp_realloc(
+  void *ptr,
+  size_t size,
+  omp_allocator_handle_t allocator = omp_null_allocator,
+  omp_allocator_handle_t free_allocator = omp_null_allocator
+);
 #else
 extern void *omp_alloc(size_t size, omp_allocator_handle_t allocator);
+extern void *omp_aligned_alloc(
+  size_t alignment,
+  size_t size,
+  omp_allocator_handle_t allocator);
 extern void omp_free(void *ptr, omp_allocator_handle_t allocator);
+extern void *omp_calloc(
+  size_t nmemb,
+  size_t size,
+  omp_allocator_handle_t allocator);
+extern void *omp_aligned_calloc(
+  size_t alignment,
+  size_t nmemb,
+  size_t size,
+  omp_allocator_handle_t allocator);
+extern void *omp_realloc(
+  void *ptr,
+  size_t size,
+  omp_allocator_handle_t allocator,
+  omp_allocator_handle_t free_allocator);
 #endif
 
 extern int omp_control_tool(int command, int modifier, void *arg);
@@ -347,4 +501,4 @@ namespace omp {
 }
 #endif
 
-#endif
+#endif /* ! _OMP_H */

@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -37,8 +37,10 @@
       parameter ( omp_proc_bind_false = 0 )
       integer ( omp_proc_bind_kind ) omp_proc_bind_true
       parameter ( omp_proc_bind_true = 1 )
-      integer ( omp_proc_bind_kind ) omp_proc_bind_master
-      parameter ( omp_proc_bind_master = 2 )
+      integer ( omp_proc_bind_kind ) omp_proc_bind_primary
+      parameter ( omp_proc_bind_primary = 2 )
+      integer ( omp_proc_bind_kind ) omp_proc_bind_master ! (deprecated)
+      parameter ( omp_proc_bind_master = omp_proc_bind_primary )
       integer ( omp_proc_bind_kind ) omp_proc_bind_close
       parameter ( omp_proc_bind_close = 3 )
       integer ( omp_proc_bind_kind ) omp_proc_bind_spread
@@ -141,18 +143,21 @@
 
       integer omp_alloctrait_val_kind
       parameter ( omp_alloctrait_val_kind = selected_int_kind( 10 ) )
+      integer ( omp_alloctrait_val_kind ) omp_atv_default
+      parameter ( omp_atv_default = -1 )
       integer ( omp_alloctrait_val_kind ) omp_atv_false
       parameter ( omp_atv_false = 0 )
       integer ( omp_alloctrait_val_kind ) omp_atv_true
       parameter ( omp_atv_true = 1 )
-      integer ( omp_alloctrait_val_kind ) omp_atv_default
-      parameter ( omp_atv_default = 2 )
       integer ( omp_alloctrait_val_kind ) omp_atv_contended
       parameter ( omp_atv_contended = 3 )
       integer ( omp_alloctrait_val_kind ) omp_atv_uncontended
       parameter ( omp_atv_uncontended = 4 )
+      integer ( omp_alloctrait_val_kind ) omp_atv_serialized
+      parameter ( omp_atv_serialized = 5 )
       integer ( omp_alloctrait_val_kind ) omp_atv_sequential
-      parameter ( omp_atv_sequential = 5 )
+! (deprecated)
+      parameter ( omp_atv_sequential = omp_atv_serialized )
       integer ( omp_alloctrait_val_kind ) omp_atv_private
       parameter ( omp_atv_private = 6 )
       integer ( omp_alloctrait_val_kind ) omp_atv_all
@@ -180,7 +185,12 @@
       integer ( omp_alloctrait_val_kind ) omp_atv_interleaved
       parameter ( omp_atv_interleaved = 18 )
 
+! Whether omp_alloctrait derived type is provided in omp_lib.h
+! is implementation defined.  The presence of it here could make
+! include 'omp_lib.h'
+! unusable in semi-strict Fortran 77 compliance compilations.
       type omp_alloctrait
+        sequence
         integer ( omp_alloctrait_key_kind ) key
         integer ( omp_alloctrait_val_kind ) value
       end type omp_alloctrait

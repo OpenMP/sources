@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -164,6 +164,36 @@ integer function omp_capture_affinity(buffer,format)
   buffer = ''
 end function
 
+subroutine omp_display_env (verbose)
+  logical, intent(in) :: verbose
+  print *, "OPENMP DISPLAY ENVIRONMENT BEGIN"
+  print *, "  _OPENMP = '202011'"
+  print *, "  OMP_DYNAMIC = 'FALSE'"
+  print *, "  OMP_NESTED = 'TRUE'"
+  print *, "  OMP_NUM_THREADS = '1'"
+  print *, "  OMP_SCHEDULE = 'DYNAMIC'"
+  print *, "  OMP_PROC_BIND = 'FALSE'"
+  print *, "  OMP_PLACES = ''"
+  print *, "  OMP_STACKSIZE = '8192K'"
+  print *, "  OMP_WAIT_POLICY = 'PASSIVE'"
+  print *, "  OMP_THREAD_LIMIT = '1'"
+  print *, "  OMP_MAX_ACTIVE_LEVELS = '1'"
+  print *, "  OMP_CANCELLATION = 'FALSE'"
+  print *, "  OMP_DEFAULT_DEVICE = '0'"
+  print *, "  OMP_MAX_TASK_PRIORITY = '0'"
+  print *, "  OMP_DISPLAY_AFFINITY = 'FALSE'"
+  print *, "  OMP_AFFINITY_FORMAT = ''"
+  print *, "  OMP_TARGET_OFFLOAD = 'DISABLED'"
+  print *, "  OMP_TOOL = 'FALSE'"
+  print *, "  OMP_TOOL_LIBRARIES = ''"
+  print *, "  OMP_TOOL_VERBOSE_INIT = 'DISABLED'"
+  print *, "  OMP_DEBUG = 'DISABLED'"
+  print *, "  OMP_ALLOCATOR = 'OMP_DEFAULT_MEM_ALLOC'"
+  print *, "  OMP_NUM_TEAMS = '1'"
+  print *, "  OMP_TEAMS_THREAD_LIMIT = '1'"
+  print *, "OPENMP DISPLAY ENVIRONMENT END"
+end subroutine omp_display_env
+
 subroutine omp_set_default_device(device_num)
   integer device_num
 end subroutine
@@ -212,6 +242,22 @@ integer function omp_pause_resource_all(kind)
   integer(kind=omp_pause_resource_kind) kind
   omp_pause_resource_all = -1
 end function
+
+subroutine omp_set_num_teams (num_teams)
+  integer :: num_teams
+end subroutine omp_set_num_teams
+
+integer function omp_get_max_teams ()
+  omp_get_max_teams = 1
+end function omp_get_max_teams
+
+subroutine omp_set_teams_thread_limit (thread_limit)
+  integer :: thread_limit
+end subroutine omp_set_teams_thread_limit
+
+integer function omp_get_teams_thread_limit ()
+  omp_get_teams_thread_limit = 1
+end function omp_get_teams_thread_limit
 
 subroutine omp_init_lock(lock)
   ! lock is 0 if the simple lock is not initialized
@@ -368,6 +414,14 @@ subroutine omp_fulfill_event(event)
   include 'omp_lib_kinds.h'
   integer(kind=omp_event_handle_kind) event
 end subroutine
+
+! The omp_target_alloc, omp_target_free, omp_target_is_present,
+! omp_target_is_accessible, omp_target_memcpy, omp_target_memcpy_rect,
+! omp_target_memcpy_async, omp_target_memcpy_rect_async,
+! omp_target_associate_ptr, omp_get_mapped_ptr,
+! omp_target_disassociate_ptr, omp_alloc, omp_aligned_alloc,
+! omp_free, omp_calloc, omp_aligned_calloc and omp_realloc APIs
+! are defined in stubs.c in this implementation.
 
 function omp_init_allocator(memspace, ntraits, traits)
   include 'omp_lib_kinds.h'

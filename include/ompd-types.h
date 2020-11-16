@@ -1,11 +1,11 @@
-/*******************************************************************
-* Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
-*                                                                  *
-* Permission to copy without fee all or part of this material is   *
-* granted, provided the OpenMP Architecture Review Board copyright *
-* notice appears. Notice is given that copying is by permission of *
-* the OpenMP Architecture Review Board.                            *
-*******************************************************************/
+/********************************************************************
+ * Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
+ *                                                                  *
+ * Permission to copy without fee all or part of this material is   *
+ * granted, provided the OpenMP Architecture Review Board copyright *
+ * notice appears. Notice is given that copying is by permission of *
+ * the OpenMP Architecture Review Board.                            *
+ ********************************************************************/
 
 #ifndef _OMPD_TYPES_H
 #define _OMPD_TYPES_H
@@ -66,5 +66,4 @@ typedef struct ompd_cudathread_coord_t {
 /* The range of non-standard implementation defined values */
 #define OMPD_DEVICE_IMPL_LO       ((ompd_device_t)1000000)
 #define OMPD_DEVICE_IMPL_HI       ((ompd_device_t)1100000)
-
-#endif
+#endif // ! _OMPD_TYPES_H

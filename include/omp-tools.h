@@ -1,5 +1,5 @@
- /*******************************************************************
- * Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
+ /********************************************************************
+ * Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
  *                                                                  *
  * Permission to copy without fee all or part of this material is   *
  * granted, provided the OpenMP Architecture Review Board copyright *
@@ -35,7 +35,8 @@ typedef enum ompt_callbacks_t {
   ompt_callback_dependences = 18,
   ompt_callback_task_dependence = 19,
   ompt_callback_work = 20,
-  ompt_callback_master = 21,
+  ompt_callback_masked = 21,
+  ompt_callback_master /*(deprecated)*/ = ompt_callback_masked,
   ompt_callback_target_map = 22,
   ompt_callback_sync_region = 23,
   ompt_callback_lock_init = 24,
@@ -46,7 +47,12 @@ typedef enum ompt_callbacks_t {
   ompt_callback_flush = 29,
   ompt_callback_cancel = 30,
   ompt_callback_reduction = 31,
-  ompt_callback_dispatch = 32
+  ompt_callback_dispatch = 32,
+  ompt_callback_target_emi = 33,
+  ompt_callback_target_data_op_emi = 34,
+  ompt_callback_target_submit_emi = 35,
+  ompt_callback_target_map_emi = 36,
+  ompt_callback_error = 37
 } ompt_callbacks_t;
 
 typedef enum ompt_record_t {
@@ -84,7 +90,8 @@ typedef enum ompt_thread_t {
 
 typedef enum ompt_scope_endpoint_t {
   ompt_scope_begin = 1,
-  ompt_scope_end = 2
+  ompt_scope_end = 2,
+  ompt_scope_beginend = 3
 } ompt_scope_endpoint_t;
 
 typedef enum ompt_dispatch_t {
@@ -93,13 +100,16 @@ typedef enum ompt_dispatch_t {
 } ompt_dispatch_t;
 
 typedef enum ompt_sync_region_t {
-  ompt_sync_region_barrier = 1,
-  ompt_sync_region_barrier_implicit = 2,
+  ompt_sync_region_barrier = 1,          // deprecated
+  ompt_sync_region_barrier_implicit = 2, // deprecated
   ompt_sync_region_barrier_explicit = 3,
   ompt_sync_region_barrier_implementation = 4,
   ompt_sync_region_taskwait = 5,
   ompt_sync_region_taskgroup = 6,
-  ompt_sync_region_reduction = 7
+  ompt_sync_region_reduction = 7,
+  ompt_sync_region_barrier_implicit_workshare = 8,
+  ompt_sync_region_barrier_implicit_parallel = 9,
+  ompt_sync_region_barrier_teams = 10
 } ompt_sync_region_t;
 
 typedef enum ompt_target_data_op_t {
@@ -108,7 +118,11 @@ typedef enum ompt_target_data_op_t {
   ompt_target_data_transfer_from_device = 3,
   ompt_target_data_delete = 4,
   ompt_target_data_associate = 5,
-  ompt_target_data_disassociate = 6
+  ompt_target_data_disassociate = 6,
+  ompt_target_data_alloc_async = 17,
+  ompt_target_data_transfer_to_device_async = 18,
+  ompt_target_data_transfer_from_device_async = 19,
+  ompt_target_data_delete_async = 20
 } ompt_target_data_op_t;
 
 typedef enum ompt_work_t {
@@ -118,7 +132,8 @@ typedef enum ompt_work_t {
   ompt_work_single_other = 4,
   ompt_work_workshare = 5,
   ompt_work_distribute = 6,
-  ompt_work_taskloop = 7
+  ompt_work_taskloop = 7,
+  ompt_work_scope = 8
 } ompt_work_t;
 
 typedef enum ompt_mutex_t {
@@ -147,6 +162,7 @@ typedef enum ompt_task_flag_t {
   ompt_task_implicit = 0x00000002,
   ompt_task_explicit = 0x00000004,
   ompt_task_target = 0x00000008,
+  ompt_task_taskwait = 0x00000010,
   ompt_task_undeferred = 0x08000000,
   ompt_task_untied = 0x10000000,
   ompt_task_final = 0x20000000,
@@ -161,14 +177,20 @@ typedef enum ompt_task_status_t {
   ompt_task_detach = 4,
   ompt_task_early_fulfill = 5,
   ompt_task_late_fulfill = 6,
-  ompt_task_switch = 7
+  ompt_task_switch = 7,
+  ompt_taskwait_complete = 8
 } ompt_task_status_t;
 
 typedef enum ompt_target_t {
   ompt_target = 1,
   ompt_target_enter_data = 2,
   ompt_target_exit_data = 3,
-  ompt_target_update = 4
+  ompt_target_update = 4,
+
+  ompt_target_nowait = 9,
+  ompt_target_enter_data_nowait = 10,
+  ompt_target_exit_data_nowait = 11,
+  ompt_target_update_nowait = 12
 } ompt_target_t;
 
 typedef enum ompt_parallel_flag_t {
@@ -193,8 +215,14 @@ typedef enum ompt_dependence_type_t {
   ompt_dependence_type_inout = 3,
   ompt_dependence_type_mutexinoutset = 4,
   ompt_dependence_type_source = 5,
-  ompt_dependence_type_sink = 6
+  ompt_dependence_type_sink = 6,
+  ompt_dependence_type_inoutset = 7
 } ompt_dependence_type_t;
+
+typedef enum ompt_severity_t {
+  ompt_warning = 1,
+  ompt_fatal = 2
+} ompt_severity_t;
 
 typedef enum ompt_cancel_flag_t {
   ompt_cancel_parallel = 0x01,
@@ -208,26 +236,18 @@ typedef enum ompt_cancel_flag_t {
 
 typedef uint64_t ompt_hwid_t;
 
-typedef uint64_t ompt_wait_id_t;
-
-typedef enum ompt_frame_flag_t {
-  ompt_frame_runtime = 0x00,
-  ompt_frame_application = 0x01,
-  ompt_frame_cfa = 0x10,
-  ompt_frame_framepointer = 0x20,
-  ompt_frame_stackaddress = 0x30
-} ompt_frame_flag_t;
-
 typedef enum ompt_state_t {
   ompt_state_work_serial = 0x000,
   ompt_state_work_parallel = 0x001,
   ompt_state_work_reduction = 0x002,
 
-  ompt_state_wait_barrier = 0x010,
+  ompt_state_wait_barrier = 0x010, // deprecated
   ompt_state_wait_barrier_implicit_parallel = 0x011,
   ompt_state_wait_barrier_implicit_workshare = 0x012,
-  ompt_state_wait_barrier_implicit = 0x013,
+  ompt_state_wait_barrier_implicit = 0x013, // deprecated
   ompt_state_wait_barrier_explicit = 0x014,
+  ompt_state_wait_barrier_implementation = 0x015,
+  ompt_state_wait_barrier_teams = 0x016,
 
   ompt_state_wait_taskwait = 0x020,
   ompt_state_wait_taskgroup = 0x021,
@@ -246,6 +266,16 @@ typedef enum ompt_state_t {
   ompt_state_overhead = 0x101,
   ompt_state_undefined = 0x102
 } ompt_state_t;
+
+typedef enum ompt_frame_flag_t {
+  ompt_frame_runtime = 0x00,
+  ompt_frame_application = 0x01,
+  ompt_frame_cfa = 0x10,
+  ompt_frame_framepointer = 0x20,
+  ompt_frame_stackaddress = 0x30
+} ompt_frame_flag_t;
+
+typedef uint64_t ompt_wait_id_t;
 
 typedef uint64_t (*ompt_get_unique_id_t)(void);
 
@@ -284,6 +314,8 @@ typedef enum ompd_rc_t {
   ompd_rc_device_read_error = 8,
   ompd_rc_device_write_error = 9,
   ompd_rc_nomem = 10,
+  ompd_rc_incomplete = 11,
+  ompd_rc_callback_error = 12
 } ompd_rc_t;
 
 typedef void (*ompt_interface_fn_t)(void);
@@ -548,17 +580,17 @@ typedef struct ompt_record_implicit_task_t {
   int flags;
 } ompt_record_implicit_task_t;
 
-typedef void (*ompt_callback_master_t)(ompt_scope_endpoint_t endpoint,
+typedef void (*ompt_callback_masked_t)(ompt_scope_endpoint_t endpoint,
                                        ompt_data_t *parallel_data,
                                        ompt_data_t *task_data,
                                        const void *codeptr_ra);
 
-typedef struct ompt_record_master_t {
+typedef struct ompt_record_masked_t {
   ompt_scope_endpoint_t endpoint;
   ompt_id_t parallel_id;
   ompt_id_t task_id;
   const void *codeptr_ra;
-} ompt_record_master_t;
+} ompt_record_masked_t;
 
 typedef void (*ompt_callback_sync_region_t)(ompt_sync_region_t kind,
                                             ompt_scope_endpoint_t endpoint,
@@ -710,6 +742,17 @@ typedef struct ompt_record_control_tool_t {
   const void *codeptr_ra;
 } ompt_record_control_tool_t;
 
+typedef void (*ompt_callback_error_t)(ompt_severity_t severity,
+                                      const char *message, size_t length,
+                                      const void *codeptr_ra);
+
+typedef struct ompt_record_error_t {
+  ompt_severity_t severity;
+  const char *message;
+  size_t length;
+  const void *codeptr_ra;
+} ompt_record_error_t;
+
 typedef struct ompd_address_t {
   ompd_seg_t segment;
   ompd_addr_t address;
@@ -739,77 +782,6 @@ typedef struct ompd_device_type_sizes_t {
 
 ompt_start_tool_result_t *ompt_start_tool(unsigned int omp_version,
                                           const char *runtime_version);
-
-const char **ompd_dll_locations;
-
-void ompd_dll_locations_valid(void);
-
-typedef ompd_rc_t (*ompd_callback_memory_alloc_fn_t)(ompd_size_t nbytes,
-                                                     void **ptr);
-
-typedef ompd_rc_t (*ompd_callback_memory_free_fn_t)(void *ptr);
-
-typedef ompd_rc_t (*ompd_callback_get_thread_context_for_thread_id_fn_t)(
-    ompd_address_space_context_t *address_space_context, ompd_thread_id_t kind,
-    ompd_size_t sizeof_thread_id, const void *thread_id,
-    ompd_thread_context_t **thread_context);
-
-typedef ompd_rc_t (*ompd_callback_sizeof_fn_t)(
-    ompd_address_space_context_t *address_space_context,
-    ompd_device_type_sizes_t *sizes);
-
-typedef ompd_rc_t (*ompd_callback_symbol_addr_fn_t)(
-    ompd_address_space_context_t *address_space_context,
-    ompd_thread_context_t *thread_context, const char *symbol_name,
-    ompd_address_t *symbol_addr, const char *file_name);
-
-typedef ompd_rc_t (*ompd_callback_memory_read_fn_t)(
-    ompd_address_space_context_t *address_space_context,
-    ompd_thread_context_t *thread_context, const ompd_address_t *addr,
-    ompd_size_t nbytes, void *buffer);
-
-typedef ompd_rc_t (*ompd_callback_memory_write_fn_t)(
-    ompd_address_space_context_t *address_space_context,
-    ompd_thread_context_t *thread_context, const ompd_address_t *addr,
-    ompd_size_t nbytes, const void *buffer);
-
-typedef ompd_rc_t (*ompd_callback_device_host_fn_t)(
-    ompd_address_space_context_t *address_space_context, const void *input,
-    ompd_size_t unit_size, ompd_size_t count, void *output);
-
-typedef ompd_rc_t (*ompd_callback_print_string_fn_t)(const char *string,
-                                                     int category);
-
-typedef struct ompd_callbacks_t {
-  ompd_callback_memory_alloc_fn_t alloc_memory;
-  ompd_callback_memory_free_fn_t free_memory;
-  ompd_callback_print_string_fn_t print_string;
-  ompd_callback_sizeof_fn_t sizeof_type;
-  ompd_callback_symbol_addr_fn_t symbol_addr_lookup;
-  ompd_callback_memory_read_fn_t read_memory;
-  ompd_callback_memory_write_fn_t write_memory;
-  ompd_callback_memory_read_fn_t read_string;
-  ompd_callback_device_host_fn_t device_to_host;
-  ompd_callback_device_host_fn_t host_to_device;
-  ompd_callback_get_thread_context_for_thread_id_fn_t
-      get_thread_context_for_thread_id;
-} ompd_callbacks_t;
-
-void ompd_bp_parallel_begin(void);
-
-void ompd_bp_parallel_end(void);
-
-void ompd_bp_task_begin(void);
-
-void ompd_bp_task_end(void);
-
-void ompd_bp_thread_begin(void);
-
-void ompd_bp_thread_end(void);
-
-void ompd_bp_device_begin(void);
-
-void ompd_bp_device_end(void);
 
 ompd_rc_t ompd_initialize(ompd_word_t api_version,
                           const ompd_callbacks_t *callbacks);
@@ -911,7 +883,7 @@ ompd_enumerate_states(ompd_address_space_handle_t *address_space_handle,
                       const char **next_state_name, ompd_word_t *more_enums);
 
 ompd_rc_t ompd_get_state(ompd_thread_handle_t *thread_handle,
-                         ompd_word_t *state, ompt_wait_id_t *wait_id);
+                         ompd_word_t *state, ompd_wait_id_t *wait_id);
 
 ompd_rc_t
 ompd_get_display_control_vars(ompd_address_space_handle_t *address_space_handle,
@@ -934,6 +906,77 @@ ompd_rc_t ompd_get_icv_string_from_scope(void *handle, ompd_scope_t scope,
 ompd_rc_t ompd_get_tool_data(void *handle, ompd_scope_t scope,
                              ompd_word_t *value, ompd_address_t *ptr);
 
+typedef ompd_rc_t (*ompd_callback_memory_alloc_fn_t)(ompd_size_t nbytes,
+                                                     void **ptr);
+
+typedef ompd_rc_t (*ompd_callback_memory_free_fn_t)(void *ptr);
+
+typedef ompd_rc_t (*ompd_callback_get_thread_context_for_thread_id_fn_t)(
+    ompd_address_space_context_t *address_space_context, ompd_thread_id_t kind,
+    ompd_size_t sizeof_thread_id, const void *thread_id,
+    ompd_thread_context_t **thread_context);
+
+typedef ompd_rc_t (*ompd_callback_sizeof_fn_t)(
+    ompd_address_space_context_t *address_space_context,
+    ompd_device_type_sizes_t *sizes);
+
+typedef ompd_rc_t (*ompd_callback_symbol_addr_fn_t)(
+    ompd_address_space_context_t *address_space_context,
+    ompd_thread_context_t *thread_context, const char *symbol_name,
+    ompd_address_t *symbol_addr, const char *file_name);
+
+typedef ompd_rc_t (*ompd_callback_memory_read_fn_t)(
+    ompd_address_space_context_t *address_space_context,
+    ompd_thread_context_t *thread_context, const ompd_address_t *addr,
+    ompd_size_t nbytes, void *buffer);
+
+typedef ompd_rc_t (*ompd_callback_memory_write_fn_t)(
+    ompd_address_space_context_t *address_space_context,
+    ompd_thread_context_t *thread_context, const ompd_address_t *addr,
+    ompd_size_t nbytes, const void *buffer);
+
+typedef ompd_rc_t (*ompd_callback_device_host_fn_t)(
+    ompd_address_space_context_t *address_space_context, const void *input,
+    ompd_size_t unit_size, ompd_size_t count, void *output);
+
+typedef ompd_rc_t (*ompd_callback_print_string_fn_t)(const char *string,
+                                                     int category);
+
+typedef struct ompd_callbacks_t {
+  ompd_callback_memory_alloc_fn_t alloc_memory;
+  ompd_callback_memory_free_fn_t free_memory;
+  ompd_callback_print_string_fn_t print_string;
+  ompd_callback_sizeof_fn_t sizeof_type;
+  ompd_callback_symbol_addr_fn_t symbol_addr_lookup;
+  ompd_callback_memory_read_fn_t read_memory;
+  ompd_callback_memory_write_fn_t write_memory;
+  ompd_callback_memory_read_fn_t read_string;
+  ompd_callback_device_host_fn_t device_to_host;
+  ompd_callback_device_host_fn_t host_to_device;
+  ompd_callback_get_thread_context_for_thread_id_fn_t
+      get_thread_context_for_thread_id;
+} ompd_callbacks_t;
+
+void ompd_bp_parallel_begin(void);
+
+void ompd_bp_parallel_end(void);
+
+void ompd_bp_task_begin(void);
+
+void ompd_bp_task_end(void);
+
+void ompd_bp_thread_begin(void);
+
+void ompd_bp_thread_end(void);
+
+void ompd_bp_device_begin(void);
+
+void ompd_bp_device_end(void);
+
+extern const char **ompd_dll_locations;
+
+void ompd_dll_locations_valid(void);
+
 typedef struct ompt_record_ompt_t {
   ompt_callbacks_t type;
   ompt_device_time_t time;
@@ -950,7 +993,7 @@ typedef struct ompt_record_ompt_t {
     ompt_record_task_dependence_t task_dependence;
     ompt_record_task_schedule_t task_schedule;
     ompt_record_implicit_task_t implicit_task;
-    ompt_record_master_t master;
+    ompt_record_masked_t masked;
     ompt_record_sync_region_t sync_region;
     ompt_record_mutex_acquire_t mutex_acquire;
     ompt_record_mutex_t mutex;
@@ -962,6 +1005,7 @@ typedef struct ompt_record_ompt_t {
     ompt_record_target_map_t target_map;
     ompt_record_target_kernel_t target_kernel;
     ompt_record_control_tool_t control_tool;
+    ompt_record_error_t error;
   } record;
 } ompt_record_ompt_t;
 
@@ -969,7 +1013,8 @@ typedef ompt_record_ompt_t *(*ompt_get_record_ompt_t)(
     ompt_buffer_t *buffer, ompt_buffer_cursor_t current);
 
 #define ompt_id_none 0
-#define ompt_data_none { 0 }
+#define ompt_data_none                                                         \
+  { 0 }
 #define ompt_time_none 0
 #define ompt_hwid_none 0
 #define ompt_addr_none ~0
@@ -981,5 +1026,4 @@ typedef ompt_record_ompt_t *(*ompt_get_record_ompt_t)(
 #ifdef __cplusplus
 } // extern "C"
 #endif
-
-#endif
+#endif // ! _OMP_TOOLS_H

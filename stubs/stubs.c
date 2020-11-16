@@ -1,5 +1,5 @@
 /*******************************************************************
-* Copyright (c) 1997-2018 OpenMP Architecture Review Board.        *
+* Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
 *                                                                  *
 * Permission to copy without fee all or part of this material is   *
 * granted, provided the OpenMP Architecture Review Board copyright *
@@ -7,12 +7,18 @@
 * the OpenMP Architecture Review Board.                            *
 *******************************************************************/
 
+#define _POSIX_C_SOURCE 200112L
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "omp.h"
+
+#define OMP_STUBS_DEFAULT_DEVICE_NUM 0
+#define OMP_STUBS_DEVICE_NUM 0
+#define OMP_STUBS_NUM_DEVICES 0
+#define OMP_STUBS_INITIAL_DEVICE_NUM OMP_STUBS_NUM_DEVICES
 
 void omp_set_num_threads(int num_threads)
 {
@@ -40,7 +46,7 @@ int omp_get_num_procs(void)
 
 int omp_in_parallel(void)
 {
-  return 0;
+  return 0;  /* false */
 }
 
 void omp_set_dynamic(int dynamic_threads)
@@ -131,7 +137,7 @@ int omp_get_active_level(void)
 
 int omp_in_final(void)
 {
-  return 1;
+  return 1;   /* true */
 }
 
 omp_proc_bind_t omp_get_proc_bind(void)
@@ -189,23 +195,55 @@ size_t omp_capture_affinity(char *buffer, size_t size, const char *format)
   return 0;
 }
 
+void omp_display_env(int verbose)
+{
+  /* Just an example of possible values.  */
+  fprintf(stderr, "\
+OPENMP DISPLAY ENVIRONMENT BEGIN\n\
+  _OPENMP = '202011'\n\
+  OMP_DYNAMIC = 'FALSE'\n\
+  OMP_NESTED = 'TRUE'\n\
+  OMP_NUM_THREADS = '1'\n\
+  OMP_SCHEDULE = 'DYNAMIC'\n\
+  OMP_PROC_BIND = 'FALSE'\n\
+  OMP_PLACES = ''\n\
+  OMP_STACKSIZE = '8192K'\n\
+  OMP_WAIT_POLICY = 'PASSIVE'\n\
+  OMP_THREAD_LIMIT = '1'\n\
+  OMP_MAX_ACTIVE_LEVELS = '1'\n\
+  OMP_CANCELLATION = 'FALSE'\n\
+  OMP_DEFAULT_DEVICE = '0'\n\
+  OMP_MAX_TASK_PRIORITY = '0'\n\
+  OMP_DISPLAY_AFFINITY = 'FALSE'\n\
+  OMP_AFFINITY_FORMAT = ''\n\
+  OMP_TARGET_OFFLOAD = 'DISABLED'\n\
+  OMP_TOOL = 'FALSE'\n\
+  OMP_TOOL_LIBRARIES = ''\n\
+  OMP_TOOL_VERBOSE_INIT = 'DISABLED'\n\
+  OMP_DEBUG = 'DISABLED'\n\
+  OMP_ALLOCATOR = 'OMP_DEFAULT_MEM_ALLOC'\n\
+  OMP_NUM_TEAMS = '1'\n\
+  OMP_TEAMS_THREAD_LIMIT = '1'\n\
+OPENMP DISPLAY ENVIRONMENT END\n");
+}
+
 void omp_set_default_device(int device_num)
 {
 }
 
 int omp_get_default_device(void)
 {
-  return 0;
+  return OMP_STUBS_DEFAULT_DEVICE_NUM;
 }
 
 int omp_get_num_devices(void)
 {
-  return 0;
+  return OMP_STUBS_NUM_DEVICES;
 }
 
 int omp_get_device_num(void)
 {
-  return -10;
+  return OMP_STUBS_DEVICE_NUM;
 }
 
 int omp_get_num_teams(void)
@@ -220,12 +258,12 @@ int omp_get_team_num(void)
 
 int omp_is_initial_device(void)
 {
-  return 1;
+  return 1;  /* true */
 }
 
 int omp_get_initial_device(void)
 {
-  return -10;
+  return OMP_STUBS_INITIAL_DEVICE_NUM;
 }
 
 int omp_get_max_task_priority(void)
@@ -241,6 +279,24 @@ int omp_pause_resource(omp_pause_resource_t kind, int device_num)
 int omp_pause_resource_all(omp_pause_resource_t kind)
 {
   return ENOTSUP;
+}
+
+void omp_set_num_teams(int num_teams)
+{
+}
+
+int omp_get_max_teams(void)
+{
+  return 1;
+}
+
+void omp_set_teams_thread_limit(int thread_limit)
+{
+}
+
+int omp_get_teams_thread_limit(void)
+{
+  return 1;
 }
 
 struct __omp_lock
@@ -426,9 +482,137 @@ void omp_fulfill_event(omp_event_handle_t event)
 {
 }
 
+int omp_get_num_interop_properties(const omp_interop_t interop)
+{
+  return 0;
+}
+
+omp_intptr_t omp_get_interop_int(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id, int *ret_code
+)
+{
+  if (ret_code)
+  {
+    if (interop == omp_interop_none)
+    {
+      *ret_code = omp_irc_empty;
+    }
+    else
+    {
+      *ret_code = omp_irc_no_value;
+    }
+  }
+  return 0;
+}
+
+void *omp_get_interop_ptr(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id, int *ret_code
+)
+{
+  if (ret_code)
+  {
+    if (interop == omp_interop_none)
+    {
+      *ret_code = omp_irc_empty;
+    }
+    else
+    {
+      *ret_code = omp_irc_no_value;
+    }
+  }
+  return NULL;
+}
+
+const char *omp_get_interop_str(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id, int *ret_code
+)
+{
+  if (ret_code)
+  {
+    if (interop == omp_interop_none)
+    {
+      *ret_code = omp_irc_empty;
+    } else
+    {
+      *ret_code = omp_irc_no_value;
+    }
+  }
+  return NULL;
+}
+
+const char *omp_get_interop_name(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id
+)
+{
+  switch (property_id)
+  {
+    case omp_ipr_fr_id:
+      return "fr_id";
+    case omp_ipr_fr_name:
+      return "fr_name";
+    case omp_ipr_vendor:
+      return "vendor";
+    case omp_ipr_vendor_name:
+      return "vendor_name";
+    case omp_ipr_device_num:
+      return "device_num";
+    case omp_ipr_platform:
+      return "platform";
+    case omp_ipr_device:
+      return "omp_ipr_device";
+    case omp_ipr_device_context:
+      return "device_context";
+    case omp_ipr_targetsync:
+      return "targetsync";
+  }
+  return NULL;
+}
+
+const char *omp_get_interop_type_desc(
+  const omp_interop_t interop,
+  omp_interop_property_t property_id
+)
+{
+  if (interop == omp_interop_none)
+    return NULL;
+  else
+    return "Invalid interop object provided";
+}
+
+const char *omp_get_interop_rc_desc(
+  const omp_interop_t interop,
+  omp_interop_rc_t ret_code
+)
+{
+  switch (ret_code)
+  {
+    case omp_irc_no_value:
+      return "Parameters valid, no meaningful value available";
+    case omp_irc_success:
+      return "Successful, value is usable";
+    case omp_irc_empty:
+      return "The object provided is equal to omp_interop_none";
+    case omp_irc_out_of_range:
+      return "Property ID is out of range";
+    case omp_irc_type_int:
+      return "Property type is int";
+    case omp_irc_type_ptr:
+      return "Property type is pointer";
+    case omp_irc_type_str:
+      return "Property type is string";
+    case omp_irc_other:
+      return "Other error";
+  }
+  return NULL;
+}
+
 void *omp_target_alloc(size_t size, int device_num)
 {
-  if (device_num != -10)
+  if (device_num != OMP_STUBS_INITIAL_DEVICE_NUM)
     return NULL;
   return malloc(size);
 }
@@ -440,7 +624,16 @@ void omp_target_free(void *device_ptr, int device_num)
 
 int omp_target_is_present(const void *ptr, int device_num)
 {
-  return 1;
+  return (device_num == OMP_STUBS_INITIAL_DEVICE_NUM);
+}
+
+int omp_target_is_accessible(
+  const void *ptr,
+  size_t size,
+  int device_num
+)
+{
+  return (device_num == OMP_STUBS_INITIAL_DEVICE_NUM);
 }
 
 int omp_target_memcpy(
@@ -453,9 +646,10 @@ int omp_target_memcpy(
   int src_device
 )
 {
-  // only the default device is valid in a stub
+  /* Only the default device is valid in a stub.  */
   if (
-    dst_device != -10 || src_device != -10
+    dst_device != OMP_STUBS_INITIAL_DEVICE_NUM
+    || src_device != OMP_STUBS_INITIAL_DEVICE_NUM
     || ! dst || ! src )
   return EINVAL;
   memcpy((char *)dst + dst_offset,
@@ -479,8 +673,9 @@ int omp_target_memcpy_rect(
 )
 {
   int ret=0;
-  // Both null, return number of dimensions supported,
-  // this stub supports an arbitrary number
+  /* Both null, return number of dimensions supported,
+   * this stub supports an arbitrary number.
+   */
   if (dst == NULL && src == NULL) return INT_MAX;
 
   if (
@@ -500,7 +695,7 @@ int omp_target_memcpy_rect(
       dst_device_num,
       src_device_num
     );
-    if(ret) goto done;
+    if (ret) goto done;
   } else {
     size_t dst_slice_size = element_size;
     size_t src_slice_size = element_size;
@@ -530,6 +725,45 @@ int omp_target_memcpy_rect(
   return ret;
 }
 
+int omp_target_memcpy_async(
+  void *dst,
+  const void *src,
+  size_t length,
+  size_t dst_offset,
+  size_t src_offset,
+  int dst_device,
+  int src_device,
+  int depobj_count,
+  omp_depend_t *depobj_list
+)
+{
+  return omp_target_memcpy(
+    dst, src, length, dst_offset, src_offset,
+    dst_device, src_device);
+}
+
+int omp_target_memcpy_rect_async(
+  void *dst,
+  const void *src,
+  size_t element_size,
+  int num_dims,
+  const size_t *volume,
+  const size_t *dst_offsets,
+  const size_t *src_offsets,
+  const size_t *dst_dimensions,
+  const size_t *src_dimensions,
+  int dst_device_num,
+  int src_device_num,
+  int depobj_count,
+  omp_depend_t *depobj_list
+)
+{
+  return omp_target_memcpy_rect(
+    dst, src, element_size, num_dims, volume,
+    dst_offsets, src_offsets, dst_dimensions, src_dimensions,
+    dst_device_num, src_device_num);
+}
+
 int omp_target_associate_ptr(
   const void *host_ptr,
   const void *device_ptr,
@@ -538,14 +772,19 @@ int omp_target_associate_ptr(
   int device_num
 )
 {
-  // No association is possible because all host pointers
-  // are considered present
+  /* No association is possible because all host pointers
+   * are considered present.  */
   return EINVAL;
 }
 
 int omp_target_disassociate_ptr(const void *ptr, int device_num)
 {
   return EINVAL;
+}
+
+void *omp_get_mapped_ptr(const void *ptr, int device_num)
+{
+  return (void *)ptr;
 }
 
 static omp_allocator_handle_t omp_allocator = omp_null_allocator;
@@ -573,32 +812,88 @@ omp_allocator_handle_t omp_get_default_allocator(void)
   return omp_allocator;
 }
 
-#ifdef __cplusplus
-void *omp_alloc(
-  size_t size,
-  omp_allocator_handle_t allocator = omp_null_allocator
-)
-#else
 void *omp_alloc(size_t size, omp_allocator_handle_t allocator)
-#endif
 {
+  if (size == 0)
+    return NULL;
   return malloc(size);
 }
 
-#ifdef __cplusplus
-void omp_free(
-  void *ptr,
-  omp_allocator_handle_t allocator = omp_null_allocator
+void *omp_aligned_alloc(
+  size_t alignment,
+  size_t size,
+  omp_allocator_handle_t allocator
 )
-#else
-void omp_free(void *ptr, omp_allocator_handle_t allocator)
-#endif
 {
-  free(ptr);
+  void *ret;
+  if (size == 0)
+    return NULL;
+  /* The following is needed for posix_memalign.  aligned_alloc,
+     memalign etc. could be used instead.  */
+  if (alignment < sizeof(void *))
+    alignment = sizeof(void *);
+  if (posix_memalign(&ret, alignment, size) == 0)
+    return ret;
+  return NULL;
+}
+
+void omp_free(void *ptr, omp_allocator_handle_t allocator)
+{
+  if (ptr != NULL)
+    free(ptr);
+}
+
+void *omp_calloc(size_t nmemb, size_t size, omp_allocator_handle_t allocator)
+{
+  if (size == 0 || nmemb == 0)
+    return NULL;
+  if (SIZE_MAX / size < nmemb)
+    return NULL;
+  return calloc(nmemb, size);
+}
+
+void *omp_aligned_calloc(
+  size_t alignment,
+  size_t nmemb,
+  size_t size,
+  omp_allocator_handle_t allocator
+)
+{
+  void *ret;
+  if (size == 0 || nmemb == 0)
+    return NULL;
+  if (SIZE_MAX / size < nmemb)
+    return NULL;
+  /* The following is needed for posix_memalign.  aligned_alloc,
+     memalign etc. could be used instead.  */
+  if (alignment < sizeof(void *))
+    alignment = sizeof(void *);
+  if (posix_memalign(&ret, alignment, size * alignment) == 0)
+  {
+    memset(ret, '\0', size * alignment);
+    return ret;
+  }
+  return NULL;
+}
+
+void *omp_realloc(
+  void *ptr,
+  size_t size,
+  omp_allocator_handle_t allocator,
+  omp_allocator_handle_t free_allocator
+)
+{
+  if (ptr == NULL)
+    return omp_alloc(size, allocator);
+  if (size == 0)
+  {
+    free(ptr);
+    return NULL;
+  }
+  return realloc(ptr, size);
 }
 
 int omp_control_tool(int command, int modifier, void *arg)
 {
   return omp_control_tool_notool;
 }
-
