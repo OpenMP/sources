@@ -1,5 +1,5 @@
 /*******************************************************************
-* Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
+* Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
 *                                                                  *
 * Permission to copy without fee all or part of this material is   *
 * granted, provided the OpenMP Architecture Review Board copyright *
@@ -256,6 +256,7 @@ extern int omp_get_level(void);
 extern int omp_get_ancestor_thread_num(int level);
 extern int omp_get_team_size(int level);
 extern int omp_get_active_level(void);
+extern int omp_in_explicit_task(void);
 extern int omp_in_final(void);
 extern omp_proc_bind_t omp_get_proc_bind(void);
 extern int omp_get_num_places(void);

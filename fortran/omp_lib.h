@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -89,6 +89,8 @@
       external omp_get_teams_thread_limit
       integer omp_get_teams_thread_limit
 
+      external omp_in_explicit_task
+      logical omp_in_explicit_task
       external omp_in_final
       logical omp_in_final
 

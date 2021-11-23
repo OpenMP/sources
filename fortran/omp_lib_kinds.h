@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *

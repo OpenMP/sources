@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -105,6 +105,10 @@ end function
 
 integer function omp_get_active_level()
   omp_get_active_level = 0
+end function
+
+logical function omp_in_explicit_task()
+  omp_in_explicit_task = .false.
 end function
 
 logical function omp_in_final()

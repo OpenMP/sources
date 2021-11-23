@@ -1,12 +1,12 @@
  /********************************************************************
- * Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
+ * Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
  *                                                                  *
  * Permission to copy without fee all or part of this material is   *
  * granted, provided the OpenMP Architecture Review Board copyright *
  * notice appears. Notice is given that copying is by permission of *
  * the OpenMP Architecture Review Board.                            *
  ********************************************************************/
- 
+
 #ifndef _OMP_TOOLS_H
 #define _OMP_TOOLS_H
 
@@ -96,7 +96,10 @@ typedef enum ompt_scope_endpoint_t {
 
 typedef enum ompt_dispatch_t {
   ompt_dispatch_iteration = 1,
-  ompt_dispatch_section = 2
+  ompt_dispatch_section = 2,
+  ompt_dispatch_ws_loop_chunk = 3,
+  ompt_dispatch_taskloop_chunk = 4,
+  ompt_dispatch_distribute_chunk = 5
 } ompt_dispatch_t;
 
 typedef enum ompt_sync_region_t {
@@ -133,7 +136,11 @@ typedef enum ompt_work_t {
   ompt_work_workshare = 5,
   ompt_work_distribute = 6,
   ompt_work_taskloop = 7,
-  ompt_work_scope = 8
+  ompt_work_scope = 8,
+  ompt_work_loop_static = 10,
+  ompt_work_loop_dynamic = 11,
+  ompt_work_loop_guided = 12,
+  ompt_work_loop_other = 13
 } ompt_work_t;
 
 typedef enum ompt_mutex_t {
@@ -206,7 +213,11 @@ typedef enum ompt_target_map_flag_t {
   ompt_target_map_flag_alloc = 0x04,
   ompt_target_map_flag_release = 0x08,
   ompt_target_map_flag_delete = 0x10,
-  ompt_target_map_flag_implicit = 0x20
+  ompt_target_map_flag_implicit = 0x20,
+  ompt_target_map_flag_always = 0x40,
+  ompt_target_map_flag_present = 0x80,
+  ompt_target_map_flag_close = 0x100,
+  ompt_target_map_flag_shared = 0x200
 } ompt_target_map_flag_t;
 
 typedef enum ompt_dependence_type_t {
@@ -376,6 +387,11 @@ typedef struct ompt_dependence_t {
   ompt_dependence_type_t dependence_type;
 } ompt_dependence_t;
 
+typedef struct ompt_dispatch_chunk_t {
+  uint64_t start;
+  uint64_t iterations;
+} ompt_dispatch_chunk_t;
+
 typedef int (*ompt_enumerate_states_t)(int current_state, int *next_state,
                                        const char **next_state_name);
 
@@ -497,14 +513,14 @@ typedef struct ompt_record_parallel_end_t {
   const void *codeptr_ra;
 } ompt_record_parallel_end_t;
 
-typedef void (*ompt_callback_work_t)(ompt_work_t wstype,
+typedef void (*ompt_callback_work_t)(ompt_work_t work_type,
                                      ompt_scope_endpoint_t endpoint,
                                      ompt_data_t *parallel_data,
                                      ompt_data_t *task_data, uint64_t count,
                                      const void *codeptr_ra);
 
 typedef struct ompt_record_work_t {
-  ompt_work_t wstype;
+  ompt_work_t work_type;
   ompt_scope_endpoint_t endpoint;
   ompt_id_t parallel_id;
   ompt_id_t task_id;
@@ -793,15 +809,20 @@ ompd_rc_t ompd_get_version_string(const char **string);
 ompd_rc_t ompd_finalize(void);
 
 ompd_rc_t ompd_process_initialize(ompd_address_space_context_t *context,
-                                  ompd_address_space_handle_t **handle);
+                                  ompd_address_space_handle_t **host_handle);
 
-ompd_rc_t ompd_device_initialize(ompd_address_space_handle_t *process_handle,
+ompd_rc_t ompd_device_initialize(ompd_address_space_handle_t *host_handle,
                                  ompd_address_space_context_t *device_context,
                                  ompd_device_t kind, ompd_size_t sizeof_id,
                                  void *id,
                                  ompd_address_space_handle_t **device_handle);
 
 ompd_rc_t ompd_rel_address_space_handle(ompd_address_space_handle_t *handle);
+
+ompd_rc_t
+ompd_get_device_thread_id_kinds(ompd_address_space_handle_t *device_handle,
+                                ompd_thread_id_t **kinds,
+                                ompd_size_t **thread_id_sizes, int *count);
 
 ompd_rc_t ompd_get_omp_version(ompd_address_space_handle_t *address_space,
                                ompd_word_t *omp_version);
@@ -829,6 +850,9 @@ ompd_rc_t ompd_thread_handle_compare(ompd_thread_handle_t *thread_handle_1,
 ompd_rc_t ompd_get_thread_id(ompd_thread_handle_t *thread_handle,
                              ompd_thread_id_t kind,
                              ompd_size_t sizeof_thread_id, void *thread_id);
+
+ompd_rc_t ompd_get_device_from_thread(ompd_thread_handle_t *thread_handle,
+                                      ompd_address_space_handle_t **device);
 
 ompd_rc_t
 ompd_get_curr_parallel_handle(ompd_thread_handle_t *thread_handle,

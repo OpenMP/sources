@@ -1,5 +1,5 @@
 /*******************************************************************
-* Copyright (c) 1997-2020 OpenMP Architecture Review Board.        *
+* Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
 *                                                                  *
 * Permission to copy without fee all or part of this material is   *
 * granted, provided the OpenMP Architecture Review Board copyright *
@@ -133,6 +133,11 @@ int omp_get_team_size(int level)
 int omp_get_active_level(void)
 {
   return 0;
+}
+
+int omp_in_explicit_task(void)
+{
+  return 0;   /* false */
 }
 
 int omp_in_final(void)
