@@ -194,6 +194,15 @@ typedef struct omp_alloctrait_t {
   omp_uintptr_t value;
 } omp_alloctrait_t;
 
+/* Define device-number enums; the value of
+ * omp_invalid_device is implementation defined.
+ */
+
+enum {
+  omp_initial_device = -1,
+  omp_invalid_device = -42
+};
+
 /*
  * define kinds of relinguishing resources
  */

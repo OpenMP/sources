@@ -21,7 +21,7 @@ The structure of the repository is as follows:
 
 
 ## License
-Copyright (c) 1997-2021 OpenMP(R) Architecture Review Board.
+Copyright (c) 1997-2022 OpenMP(R) Architecture Review Board.
 
 Permission to copy without fee all or part of this material is granted, provided
 that the OpenMP Architecture Review Board copyright notice appears.  Notice is

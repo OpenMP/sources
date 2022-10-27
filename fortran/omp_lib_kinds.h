@@ -78,7 +78,12 @@
       integer omp_depend_kind
       parameter ( omp_depend_kind = selected_int_kind( 10 ) )
 
+      integer omp_initial_device
+      parameter ( omp_initial_device = -1 )
+      integer omp_invalid_device
+      parameter ( omp_invalid_device = -42 )
       integer omp_pause_resource_kind
+
       parameter ( omp_pause_resource_kind = selected_int_kind( 8 ) )
       integer ( omp_pause_resource_kind ) omp_pause_soft
       parameter ( omp_pause_soft = 1 )

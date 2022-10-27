@@ -58,6 +58,9 @@ module omp_lib_kinds
   integer (kind=omp_pause_resource_kind), parameter :: omp_pause_soft = 1
   integer (kind=omp_pause_resource_kind), parameter :: omp_pause_hard = 2
 
+  integer, parameter ( omp_initial_device = -1 )
+  integer, parameter ( omp_invalid_device = -42 )
+
   integer, parameter :: omp_event_handle_kind = selected_int_kind( 8 )
 
   integer, parameter :: omp_memspace_handle_kind = selected_int_kind( 8 )
@@ -185,8 +188,8 @@ module omp_lib
 
   use omp_lib_kinds
 
-!                               OpenMP API v5.1
-  integer, parameter :: openmp_version = 202011
+!                               OpenMP API v5.2
+  integer, parameter :: openmp_version = 202111
 
   interface
 

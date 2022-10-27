@@ -16,7 +16,7 @@
 
       include 'omp_lib_kinds.h'
       integer openmp_version
-      parameter ( openmp_version = 202011 )
+      parameter ( openmp_version = 202111 )
 
       external omp_set_num_threads
       external omp_get_num_threads
