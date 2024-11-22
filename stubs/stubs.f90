@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2024 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -115,6 +115,14 @@ logical function omp_in_final()
   omp_in_final = .true.
 end function
 
+logical function omp_is_free_agent()
+  omp_is_free_agent = .false.
+end function
+
+logical function omp_ancestor_is_free_agent()
+  omp_ancestor_is_free_agent = .false.
+end function
+
 function omp_get_proc_bind()
   include 'omp_lib_kinds.h'
   integer(kind=omp_proc_bind_kind) omp_get_proc_bind
@@ -148,22 +156,22 @@ subroutine omp_get_partition_place_nums(place_nums)
 end subroutine
 
 subroutine omp_set_affinity_format(format)
-  character(len=*),intent(in)::format
+  character(len=*), intent(in)::format
 end subroutine
 
 integer function omp_get_affinity_format(buffer)
-  character(len=*),intent(out)::buffer
+  character(len=*), intent(out)::buffer
   omp_get_affinity_format = 0
   buffer = ''
 end function
 
 subroutine omp_display_affinity(format)
-  character(len=*),intent(in)::format
+  character(len=*), intent(in)::format
 end subroutine
 
 integer function omp_capture_affinity(buffer,format)
-  character(len=*),intent(out)::buffer
-  character(len=*),intent(in)::format
+  character(len=*), intent(out)::buffer
+  character(len=*), intent(in)::format
   omp_capture_affinity = 0
   buffer = ''
 end function
@@ -171,7 +179,7 @@ end function
 subroutine omp_display_env (verbose)
   logical, intent(in) :: verbose
   print *, "OPENMP DISPLAY ENVIRONMENT BEGIN"
-  print *, "  _OPENMP = '202011'"
+  print *, "  _OPENMP = '202411'"
   print *, "  OMP_DYNAMIC = 'FALSE'"
   print *, "  OMP_NESTED = 'TRUE'"
   print *, "  OMP_NUM_THREADS = '1'"
@@ -422,10 +430,52 @@ end subroutine
 ! The omp_target_alloc, omp_target_free, omp_target_is_present,
 ! omp_target_is_accessible, omp_target_memcpy, omp_target_memcpy_rect,
 ! omp_target_memcpy_async, omp_target_memcpy_rect_async,
+! omp_target_memset, omp_target_memset_async,
 ! omp_target_associate_ptr, omp_get_mapped_ptr,
 ! omp_target_disassociate_ptr, omp_alloc, omp_aligned_alloc,
 ! omp_free, omp_calloc, omp_aligned_calloc and omp_realloc APIs
 ! are defined in stubs.c in this implementation.
+
+function omp_get_devices_memspace (ndevs, devs, memspace)
+  use omp_lib_kinds
+  integer(kind=omp_memspace_handle_kind) :: omp_get_devices_memspace
+  integer, intent(in) :: ndevs
+  integer, intent(in) :: devs(*)
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  omp_get_devices_memspace = omp_null_mem_space
+end function
+
+function omp_get_device_memspace (dev, memspace)
+  use omp_lib_kinds
+  integer(kind=omp_memspace_handle_kind) :: omp_get_device_memspace
+  integer, intent(in) :: dev
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  omp_get_device_memspace = omp_null_mem_space
+end function
+
+function omp_get_devices_and_host_memspace (ndevs, devs, memspace)
+  use omp_lib_kinds
+  integer(kind=omp_memspace_handle_kind) :: omp_get_devices_and_host_memspace
+  integer, intent(in) :: ndevs
+  integer, intent(in) :: devs(*)
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  omp_get_devices_and_host_memspace = omp_null_mem_space
+end function
+
+function omp_get_device_and_host_memspace (dev, memspace)
+  use omp_lib_kinds
+  integer(kind=omp_memspace_handle_kind) :: omp_get_device_and_host_memspace
+  integer, intent(in) :: dev
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  omp_get_device_and_host_memspace = omp_null_mem_space
+end function
+
+function omp_get_devices_all_memspace (memspace)
+  use omp_lib_kinds
+  integer(kind=omp_memspace_handle_kind) :: omp_get_devices_all_memspace
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  omp_get_devices_all_memspace = omp_null_mem_space
+end function
 
 function omp_init_allocator(memspace, ntraits, traits)
   include 'omp_lib_kinds.h'
@@ -450,6 +500,22 @@ function omp_get_default_allocator()
   include 'omp_lib_kinds.h'
   integer(kind=omp_allocator_handle_kind) omp_get_default_allocator
   omp_get_default_allocator = omp_null_allocator
+end function
+
+function omp_get_memspace_num_resources (memspace)
+  include 'omp_lib_kinds.h'
+  integer omp_get_memspace_num_resources
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  omp_get_memspace_num_resources = 0
+end function
+
+function omp_get_submemspace (memspace, num_resources, resources)
+  include 'omp_lib_kinds.h'
+  integer(kind=omp_memspace_handle_kind) omp_get_submemspace
+  integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+  integer, intent(in):: num_resources
+  integer, intent(in):: resources(*)
+  omp_get_submemspace = omp_null_mem_space
 end function
 
 integer function omp_control_tool(command, modifier)

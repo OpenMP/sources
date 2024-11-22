@@ -1,5 +1,5 @@
 /*******************************************************************
-* Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
+* Copyright (c) 1997-2024 OpenMP Architecture Review Board.        *
 *                                                                  *
 * Permission to copy without fee all or part of this material is   *
 * granted, provided the OpenMP Architecture Review Board copyright *
@@ -79,6 +79,13 @@ typedef enum omp_proc_bind_t
 
 typedef void *omp_depend_t;
 
+/* define thread enums; the value of
+ * omp_unassigned_thread is implementation defined.
+ */
+enum {
+  omp_unassigned_thread = -42
+};
+
 /*
  * define interop properties
  */
@@ -93,7 +100,7 @@ typedef enum omp_interop_property_t
   omp_ipr_device = -7,
   omp_ipr_device_context = -8,
   omp_ipr_targetsync = -9,
-  omp_ipr_first = -9
+  omp_ipr_first = omp_ipr_targetsync
 } omp_interop_property_t;
 
 /*
@@ -111,39 +118,53 @@ typedef enum omp_interop_rc_t
   omp_irc_other = -6
 } omp_interop_rc_t;
 
+/* Define omp_interop_fr_t; only omp_ifr_last is required by the
+   OpenMP specification, the others are part of the additional
+   definition document.  */
+typedef enum omp_interop_fr_t
+{
+  omp_ifr_cuda = 1,
+  omp_ifr_cuda_driver = 2,
+  omp_ifr_opencl = 3,
+  omp_ifr_sycl = 4,
+  omp_ifr_hip = 5,
+  omp_ifr_level_zero = 6,
+  omp_ifr_hsa = 7,
+  omp_ifr_last = omp_ifr_hsa
+} omp_interop_fr_t;
+
+/* Implementation-defined integer type. */
 typedef void *omp_interop_t;
 #define omp_interop_none ((omp_interop_t) 0)
 
 /*
  * define memory management types
  */
-typedef uintptr_t omp_uintptr_t;
 typedef intptr_t omp_intptr_t;
+typedef uintptr_t omp_uintptr_t;
 
 typedef enum omp_memspace_handle_t {
-  omp_default_mem_space,
-  omp_large_cap_mem_space,
-  omp_const_mem_space,
-  omp_high_bw_mem_space,
-  omp_low_lat_mem_space
-  /* ,
-     Add vendor specific constants for memory spaces here.  */
+  omp_default_mem_space = -1,
+  omp_null_mem_space = 0,
+  omp_large_cap_mem_space = 1,
+  omp_const_mem_space = 2,
+  omp_high_bw_mem_space = 3,
+  omp_low_lat_mem_space = 4
+  /* Add vendor specific constants for memory spaces here.  */
 } omp_memspace_handle_t;
 
 typedef enum omp_allocator_handle_t {
   omp_null_allocator = 0,
-  /* The rest of the enumerators have
-     implementation specific values.  */
-  omp_default_mem_alloc = -12,
-  omp_large_cap_mem_alloc,
-  omp_const_mem_alloc,
-  omp_high_bw_mem_alloc,
-  omp_low_lat_mem_alloc,
-  omp_cgroup_mem_alloc,
-  omp_pteam_mem_alloc,
-  omp_thread_mem_alloc
-  /* ,
-     Some range for dynamically allocated handles.  */
+  omp_default_mem_alloc = 1,
+  omp_large_cap_mem_alloc = 2,
+  omp_const_mem_alloc = 3,
+  omp_high_bw_mem_alloc = 4,
+  omp_low_lat_mem_alloc = 5,
+  omp_cgroup_mem_alloc = 6,
+  omp_pteam_mem_alloc = 7,
+  omp_thread_mem_alloc = 8
+  /* Additionally used implementation-specific allocators
+     and for dynamically created allocators.  */
 } omp_allocator_handle_t;
 
 typedef enum omp_alloctrait_key_t {
@@ -154,7 +175,15 @@ typedef enum omp_alloctrait_key_t {
   omp_atk_fallback = 5,
   omp_atk_fb_data = 6,
   omp_atk_pinned = 7,
-  omp_atk_partition = 8
+  omp_atk_partition = 8,
+  omp_atk_pin_device = 9,
+  omp_atk_preferred_device = 10,
+  omp_atk_device_access = 11,
+  omp_atk_target_access = 12,
+  omp_atk_atomic_scope = 13,
+  omp_atk_part_size = 14,
+  omp_atk_partioner = 15,
+  omp_atk_partioner_arg = 16
 } omp_alloctrait_key_t;
 
 typedef enum omp_alloctrait_value_t {
@@ -165,7 +194,7 @@ typedef enum omp_alloctrait_value_t {
   omp_atv_serialized = 5,
   omp_atv_sequential = omp_atv_serialized, /* (deprecated) */
   omp_atv_private = 6,
-  omp_atv_all = 7,
+  omp_atv_device = 7,
   omp_atv_thread = 8,
   omp_atv_pteam = 9,
   omp_atv_cgroup = 10,
@@ -176,7 +205,12 @@ typedef enum omp_alloctrait_value_t {
   omp_atv_environment = 15,
   omp_atv_nearest = 16,
   omp_atv_blocked = 17,
-  omp_atv_interleaved = 18
+  omp_atv_interleaved = 18,
+  omp_atv_all = 19,
+  omp_atv_single = 20,
+  omp_atv_multiple = 21,
+  omp_atv_memspace = 22,
+  omp_atv_partioner = 23
 } omp_alloctrait_value_t;
 
 #define omp_atv_default ((omp_uintptr_t) -1)
@@ -189,10 +223,30 @@ typedef enum omp_alloctrait_value_t {
    etc.
  */
 
+typedef omp_uintptr_t omp_alloctrait_val_t;
+
 typedef struct omp_alloctrait_t {
   omp_alloctrait_key_t key;
   omp_uintptr_t value;
 } omp_alloctrait_t;
+
+/* Implementation-defined type. */
+typedef void * omp_mempartition_t;
+typedef void * omp_mempartitioner_t;
+
+typedef enum omp_mempartitioner_lifetime_t {
+  omp_static_mempartition = 1,
+  omp_allocator_mempartition = 2,
+  omp_dynamic_mempartition = 3
+} omp_mempartitioner_lifetime_t;
+
+typedef void (*omp_mempartitioner_compute_proc_t) (
+  omp_memspace_handle_t memspace, size_t allocation_size,
+  omp_alloctrait_val_t partitioner_arg,
+  omp_mempartition_t *partition);
+
+typedef void (*omp_mempartitioner_release_proc_t) (
+  omp_mempartition_t *partition);
 
 /* Define device-number enums; the value of
  * omp_invalid_device is implementation defined.
@@ -203,19 +257,28 @@ enum {
   omp_invalid_device = -42
 };
 
+
 /*
  * define kinds of relinguishing resources
  */
 typedef enum omp_pause_resource_t {
   omp_pause_soft = 1,
-  omp_pause_hard = 2
+  omp_pause_hard = 2,
+  omp_pause_stop_tool = 3
 } omp_pause_resource_t;
 
+/* Implementation-defined integral type, e.g.: */
 typedef enum omp_event_handle_t {
-  /* Vendor specific enumerators, e.g.:  */
   __omp_event_min = 0,
   __omp_event_max = ~0u
 } omp_event_handle_t;
+
+typedef enum omp_impex_t {
+  omp_not_impex = 0,
+  omp_import = 1,
+  omp_export = 2,
+  omp_impex = 3
+} omp_impex_t;
 
 /*
  * define the tool control commands
@@ -267,6 +330,11 @@ extern int omp_get_team_size(int level);
 extern int omp_get_active_level(void);
 extern int omp_in_explicit_task(void);
 extern int omp_in_final(void);
+extern int omp_is_free_agent(void);
+extern int omp_ancestor_is_free_agent(int level);
+extern int omp_get_max_progress_width(int device_num);
+extern int omp_get_device_from_uid(const char *uid);
+const char *omp_get_uid_from_device(int device_num);
 extern omp_proc_bind_t omp_get_proc_bind(void);
 extern int omp_get_num_places(void);
 extern int omp_get_place_num_procs(int place_num);
@@ -294,6 +362,10 @@ extern int omp_get_num_teams(void);
 extern int omp_get_team_num(void);
 extern int omp_is_initial_device(void);
 extern int omp_get_initial_device(void);
+extern int omp_get_device_num_teams(int device_num);
+extern void omp_set_device_num_teams(int num_teams, int device_num);
+extern int omp_get_device_teams_thread_limit(int device_num);
+extern void omp_set_device_teams_thread_limit(int thread_limit, int device_num);
 extern int omp_get_max_task_priority(void);
 extern int omp_pause_resource(omp_pause_resource_t kind, int device_num);
 extern int omp_pause_resource_all(omp_pause_resource_t kind);
@@ -412,6 +484,18 @@ extern int omp_target_memcpy_rect_async(
   int depobj_count,
   omp_depend_t *depobj_list
 );
+extern void *omp_target_memset(
+  void *ptr,
+  int val,
+  size_t count,
+  int device_num
+);
+extern void *omp_target_memset_async(
+  void *ptr, int val, size_t count,
+  int device_num,
+  int depobj_count,
+  omp_depend_t *depobj_list
+);
 extern int omp_target_associate_ptr(
   const void *host_ptr,
   const void *device_ptr,
@@ -425,14 +509,79 @@ extern int omp_target_disassociate_ptr(
   int device_num
 );
 
+extern omp_memspace_handle_t omp_get_devices_memspace(
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_memspace_handle_t omp_get_device_memspace(
+  int dev,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_memspace_handle_t omp_get_devices_and_host_memspace(
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_memspace_handle_t omp_get_device_and_host_memspace(
+  int dev,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_memspace_handle_t omp_get_devices_all_memspace(
+  omp_memspace_handle_t memspace
+);
+
 extern omp_allocator_handle_t omp_init_allocator(
   omp_memspace_handle_t memspace,
   int ntraits,
   const omp_alloctrait_t traits[]
 );
+
 extern void omp_destroy_allocator(omp_allocator_handle_t allocator);
 extern void omp_set_default_allocator(omp_allocator_handle_t allocator);
 extern omp_allocator_handle_t omp_get_default_allocator(void);
+extern int omp_get_memspace_num_resources (omp_memspace_handle_t);
+extern size_t omp_get_memspace_pagesize(omp_memspace_handle_t memspace);
+extern omp_memspace_handle_t omp_get_submemspace (omp_memspace_handle_t, int, int *);
+
+extern void omp_init_mempartitioner(omp_mempartitioner_t *partitioner,
+                                    omp_mempartitioner_lifetime_t lifetime,
+                                    omp_mempartitioner_compute_proc_t compute_proc,
+                                    omp_mempartitioner_release_proc_t release_proc);
+extern void omp_destroy_mempartitioner(const omp_mempartitioner_t *partitioner);
+extern int omp_mempartition_set_part(omp_mempartition_t *partition,
+                                     size_t part, int resource, size_t size);
+extern void *omp_mempartition_get_user_data(const omp_mempartition_t *partition);
+
+extern omp_allocator_handle_t omp_get_devices_allocator (
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_allocator_handle_t omp_get_device_allocator (
+  int dev,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_allocator_handle_t omp_get_devices_and_host_allocator (
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_allocator_handle_t omp_get_device_and_host_allocator (
+  int dev,
+  omp_memspace_handle_t memspace
+);
+
+extern omp_allocator_handle_t omp_get_devices_all_allocator (
+  omp_memspace_handle_t memspace
+);
 
 #ifdef __cplusplus
 extern void *omp_alloc(

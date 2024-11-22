@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2024 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -7,16 +7,25 @@
 ! the OpenMP Architecture Review Board.                            *
 ! ******************************************************************
 
+! Note that the Fortran include file (omp_lib.h) is deprecated.
+! Use the omp_lib module (omp_lib.f90) instead.
+      
+! Note that "Whether the omp_lib.h file provides derived-type definitions
+! or those routines that require an explicit interface is implementation
+! defined.
+!     
+! This implementation does not!
+
 ! default integer type assumed below
 ! default logical type assumed below
-! OpenMP API v5.1
+! OpenMP API v6.0
 
 !      the "!" of this comment starts in column 1
 !23456
 
       include 'omp_lib_kinds.h'
       integer openmp_version
-      parameter ( openmp_version = 202111 )
+      parameter ( openmp_version = 202411 )
 
       external omp_set_num_threads
       external omp_get_num_threads
@@ -93,6 +102,10 @@
       logical omp_in_explicit_task
       external omp_in_final
       logical omp_in_final
+      external omp_is_free_agent
+      logical omp_is_free_agent
+      external omp_ancestor_is_free_agent
+      logical omp_ancestor_is_free_agent
 
       integer ( omp_proc_bind_kind ) omp_get_proc_bind
       external omp_get_proc_bind
@@ -141,12 +154,38 @@
 ! include 'omp_lib.h'
 ! unusable in strict Fortran 77, 90 or 95 compliance modes.
 
+      integer ( omp_memspace_handle_kind ) omp_get_devices_memspace
+      external omp_get_devices_memspace
+      integer ( omp_memspace_handle_kind ) omp_get_device_memspace
+      external omp_get_device_memspace
+      integer(omp_memspace_handle_kind)omp_get_devices_and_host_memspace
+      external omp_get_devices_and_host_memspace
+      integer(omp_memspace_handle_kind) omp_get_device_and_host_memspace
+      external omp_get_device_and_host_memspace
+      integer ( omp_memspace_handle_kind ) omp_get_devices_all_memspace
+      external omp_get_devices_all_memspace
       external omp_init_allocator
       integer ( omp_allocator_handle_kind ) omp_init_allocator
       external omp_destroy_allocator
       external omp_set_default_allocator
       external omp_get_default_allocator
       integer ( omp_allocator_handle_kind ) omp_get_default_allocator
+      integer( omp_allocator_handle_kind ) omp_get_devices_allocator
+      external omp_get_devices_allocator
+      integer(kind=omp_allocator_handle_kind ) omp_get_device_allocator
+      external omp_get_device_allocator
+      integer( omp_allocator_handle_kind )                                      &
+     &  omp_get_devices_and_host_allocator
+      external omp_get_devices_and_host_allocator
+      integer( omp_allocator_handle_kind)                                       &
+     &  omp_get_device_and_host_allocator
+      external omp_get_device_and_host_allocator
+      integer( omp_allocator_handle_kind ) omp_get_devices_all_allocator
+      external omp_get_devices_all_allocator
+      integer omp_get_memspace_num_resources
+      external omp_get_memspace_num_resources
+      integer ( omp_memspace_handle_kind) omp_get_submemspace
+      external omp_get_submemspace
 
       external omp_control_tool
       integer omp_control_tool

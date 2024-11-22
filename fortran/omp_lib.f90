@@ -1,5 +1,5 @@
 ! ******************************************************************
-! Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
+! Copyright (c) 1997-2024 OpenMP Architecture Review Board.        *
 !                                                                  *
 ! Permission to copy without fee all or part of this material is   *
 ! granted, provided the OpenMP Architecture Review Board copyright *
@@ -41,7 +41,7 @@ module omp_lib_kinds
   integer(kind=omp_sched_kind), parameter :: omp_sched_guided = 3
   integer(kind=omp_sched_kind), parameter :: omp_sched_auto = 4
   integer(kind=omp_sched_kind), parameter :: &
-    omp_sched_monotonic = ishft(int(1, kind=omp_sched_kind), 31)
+    omp_sched_monotonic = int(Z'80000000', kind=omp_sched_kind)
 
   integer, parameter :: omp_proc_bind_kind = selected_int_kind( 8 )
   integer (kind=omp_proc_bind_kind), parameter :: omp_proc_bind_false = 0
@@ -52,20 +52,81 @@ module omp_lib_kinds
   integer (kind=omp_proc_bind_kind), parameter :: omp_proc_bind_close = 3
   integer (kind=omp_proc_bind_kind), parameter :: omp_proc_bind_spread = 4
 
+  integer, parameter :: omp_unassigned_thread = -42
+
   integer, parameter :: omp_depend_kind = selected_int_kind( 10 )
 
   integer, parameter :: omp_pause_resource_kind = selected_int_kind( 8 )
   integer (kind=omp_pause_resource_kind), parameter :: omp_pause_soft = 1
   integer (kind=omp_pause_resource_kind), parameter :: omp_pause_hard = 2
+  integer (kind=omp_pause_resource_kind), parameter :: omp_pause_stop_tool = 3
 
-  integer, parameter ( omp_initial_device = -1 )
-  integer, parameter ( omp_invalid_device = -42 )
+  integer, parameter :: omp_initial_device = -1
+  integer, parameter :: omp_invalid_device = -42
 
+  ! Implementation-defined kind value, e.g.
   integer, parameter :: omp_event_handle_kind = selected_int_kind( 8 )
 
-  integer, parameter :: omp_memspace_handle_kind = selected_int_kind( 8 )
+  integer, parameter :: omp_impex_kind = selected_int_kind( 8 )
+  integer (kind=omp_impex_kind), parameter :: omp_not_impex = 0
+  integer (kind=omp_impex_kind), parameter :: omp_import = 1
+  integer (kind=omp_impex_kind), parameter :: omp_export = 2
+  integer (kind=omp_impex_kind), parameter :: omp_impex = 3
+
+  ! Implementation-defined kind value, e.g.
+  integer, parameter :: omp_interop_kind = selected_int_kind( 10 )
+
+  integer (kind=omp_interop_kind), parameter :: &
+    omp_interop_none = 0_omp_interop_kind
+
+  ! Implementation-defined kind value, e.g.
+  integer, parameter :: omp_interop_fr_kind = selected_int_kind( 8 )
+
+  ! Only omp_ifr_last is required by the OpenMP specification,
+  ! the others are part of the additional definition document.
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_cuda = 1
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_cuda_driver = 2
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_opencl = 3
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_sycl = 4
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_hip = 5
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_level_zero = 6
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_hsa = 7
+  integer (omp_interop_fr_kind), parameter :: omp_ifr_last = omp_ifr_hsa
+
+  ! Implementation-defined kind value, e.g.
+  integer, parameter :: omp_interop_property_kind = selected_int_kind( 8 )
+
+  integer (omp_interop_property_kind), parameter :: omp_ipr_fr_id = -1
+  integer (omp_interop_property_kind), parameter :: omp_ipr_fr_name = -2
+  integer (omp_interop_property_kind), parameter :: omp_ipr_vendor = -3
+  integer (omp_interop_property_kind), parameter :: omp_ipr_vendor_name = -4
+  integer (omp_interop_property_kind), parameter :: omp_ipr_device_num = -5
+  integer (omp_interop_property_kind), parameter :: omp_ipr_platform = -6
+  integer (omp_interop_property_kind), parameter :: omp_ipr_device = -7
+  integer (omp_interop_property_kind), parameter :: omp_ipr_device_context = -8
+  integer (omp_interop_property_kind), parameter :: omp_ipr_targetsync = -9
+  integer (omp_interop_property_kind), parameter :: &
+    omp_ipr_first = omp_ipr_targetsync
+
+  ! Implementation-defined kind value, e.g.
+  integer, parameter :: omp_interop_rc_kind = selected_int_kind( 8 )
+  integer (omp_interop_rc_kind), parameter :: omp_irc_no_value = 1
+  integer (omp_interop_rc_kind), parameter :: omp_irc_success = 0
+  integer (omp_interop_rc_kind), parameter :: omp_irc_empty = -1
+  integer (omp_interop_rc_kind), parameter :: omp_irc_out_of_range = -2
+  integer (omp_interop_rc_kind), parameter :: omp_irc_type_int = -3
+  integer (omp_interop_rc_kind), parameter :: omp_irc_type_ptr = -4
+  integer (omp_interop_rc_kind), parameter :: omp_irc_type_str = -5
+  integer (omp_interop_rc_kind), parameter :: omp_irc_other = -6
+
+
+  integer, parameter :: omp_memspace_handle_kind = selected_int_kind( 10 )
   integer (kind=omp_memspace_handle_kind), parameter :: &
-    omp_default_mem_space = 0
+    omp_default_mem_space = -1
+  integer (kind=omp_memspace_handle_kind), parameter :: &
+    omp_default_mem_space = -1
+  integer (kind=omp_memspace_handle_kind), parameter :: &
+    omp_null_mem_space = 0
   integer (kind=omp_memspace_handle_kind), parameter :: &
     omp_large_cap_mem_space = 1
   integer (kind=omp_memspace_handle_kind), parameter :: &
@@ -75,7 +136,7 @@ module omp_lib_kinds
   integer (kind=omp_memspace_handle_kind), parameter :: &
     omp_low_lat_mem_space = 4
 
-  integer, parameter :: omp_allocator_handle_kind = selected_int_kind( 8 )
+  integer, parameter :: omp_allocator_handle_kind = selected_int_kind( 10 )
   integer (kind=omp_allocator_handle_kind), parameter :: &
     omp_null_allocator = 0
   integer (kind=omp_allocator_handle_kind), parameter :: &
@@ -112,6 +173,22 @@ module omp_lib_kinds
     omp_atk_pinned = 7
   integer (kind=omp_alloctrait_key_kind), parameter :: &
     omp_atk_partition = 8
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_pin_device = 9
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_preferred_device = 10
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_device_access = 11
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_target_access = 12
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_atomic_scope = 13
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_part_size = 14
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_partitioner = 15
+  integer (kind=omp_alloctrait_key_kind), parameter :: &
+    omp_atk_partitioner_arg = 16
 
   integer, parameter :: omp_alloctrait_val_kind = selected_int_kind( 10 )
   integer (kind=omp_alloctrait_val_kind), parameter :: &
@@ -131,7 +208,7 @@ module omp_lib_kinds
   integer (kind=omp_alloctrait_val_kind), parameter :: &
     omp_atv_private = 6
   integer (kind=omp_alloctrait_val_kind), parameter :: &
-    omp_atv_all = 7
+    omp_atv_device = 7
   integer (kind=omp_alloctrait_val_kind), parameter :: &
     omp_atv_thread = 8
   integer (kind=omp_alloctrait_val_kind), parameter :: &
@@ -154,12 +231,35 @@ module omp_lib_kinds
     omp_atv_blocked = 17
   integer (kind=omp_alloctrait_val_kind), parameter :: &
     omp_atv_interleaved = 18
+  integer (kind=omp_alloctrait_val_kind), parameter :: &
+    omp_atv_all = 19
+  integer (kind=omp_alloctrait_val_kind), parameter :: &
+    omp_atv_single = 20
+  integer (kind=omp_alloctrait_val_kind), parameter :: &
+    omp_atv_multiple = 21
+  integer (kind=omp_alloctrait_val_kind), parameter :: &
+    omp_atv_memspace = 22
+  integer(kind=omp_alloctrait_val_kind),  parameter :: &
+    omp_atv_partitioner = 23
+
 
   type omp_alloctrait
     sequence
     integer (kind=omp_alloctrait_key_kind) :: key
     integer (kind=omp_alloctrait_val_kind) :: value
   end type omp_alloctrait
+
+  ! Implementation-defined integer kinds
+  integer, parameter :: omp_mempartition_kind = selected_int_kind( 10 )
+  integer, parameter :: omp_mempartitioner_kind = selected_int_kind( 10 )
+
+  integer, parameter :: omp_lifetime_kind = selected_int_kind( 8 )
+  integer(kind=omp_lifetime_kind), parameter :: &
+    omp_static_mempartition = 1
+  integer(kind=omp_lifetime_kind), parameter :: &
+    omp_allocator_mempartition = 2
+  integer(kind=omp_lifetime_kind), parameter :: &
+    omp_dynamic_mempartition = 3
 
   integer, parameter :: omp_control_tool_kind = selected_int_kind( 8 )
   integer (kind=omp_control_tool_kind), parameter :: &
@@ -182,14 +282,31 @@ module omp_lib_kinds
   integer (kind=omp_control_tool_result_kind), parameter :: &
     omp_control_tool_ignored = 1
 
+abstract interface
+  subroutine omp_mempartioner_compute_proc_t(memspace, allocation_size, &
+                                             partitioner_arg, partition) bind(C)
+    use, intrinsic :: iso_c_binding, only: c_size_t
+    import
+    integer(omp_memspace_handle_kind) :: memspace
+    integer(c_size_t), value :: allocation_size
+    integer(omp_alloctrait_val_kind), value :: partitioner_arg
+    integer(omp_mempartitioner_kind) :: partition
+  end subroutine
+  subroutine omp_mempartioner_release_proc_t(partition) bind(C)
+    import
+    integer(omp_mempartitioner_kind) :: partition
+  end subroutine
+end interface
+
+
 end module omp_lib_kinds
 
 module omp_lib
 
   use omp_lib_kinds
 
-!                               OpenMP API v5.2
-  integer, parameter :: openmp_version = 202111
+!                               OpenMP API v6.0
+  integer, parameter :: openmp_version = 202411
 
   interface
 
@@ -212,6 +329,19 @@ module omp_lib
     function omp_get_num_procs ()
       integer :: omp_get_num_procs
     end function omp_get_num_procs
+
+    integer function omp_get_max_progress_width(device_num)
+      integer device_num
+    end function
+
+    integer function omp_get_device_from_uid(uid)
+      character(len=*), intent(in) :: uid
+    end function
+
+    character(:) function omp_get_uid_from_device(device_num)
+      pointer :: omp_get_uid_from_device
+      integer, intent(in) :: device_num
+    end function
 
     function omp_in_parallel ()
       logical :: omp_in_parallel
@@ -290,6 +420,15 @@ module omp_lib
     function omp_in_final ()
       logical :: omp_in_final
     end function omp_in_final
+
+    function omp_is_free_agent ()
+      logical :: omp_is_free_agent
+    end function omp_is_free_agent
+
+    function omp_ancestor_is_free_agent (level)
+      integer, intent(in) :: level
+      logical :: omp_ancestor_is_free_agent
+    end function omp_ancestor_is_free_agent
 
     function omp_get_proc_bind ()
       use omp_lib_kinds
@@ -376,6 +515,22 @@ module omp_lib
     function omp_get_initial_device ()
       integer :: omp_get_initial_device
     end function omp_get_initial_device
+
+    integer function omp_get_device_num_teams(device_num)
+      integer device_num
+    end function omp_get_device_num_teams
+
+    subroutine omp_set_device_num_teams(num_teams, device_num)
+      integer num_teams, device_num
+    end subroutine omp_set_device_num_teams
+
+    integer function omp_get_device_teams_thread_limit(device_num)
+      integer device_num
+    end function omp_get_device_teams_thread_limit
+
+    subroutine omp_set_device_teams_thread_limit(thread_limit, device_num)
+      integer thread_limit, device_num
+    end subroutine omp_set_device_teams_thread_limit
 
     function omp_get_max_task_priority ()
       integer :: omp_get_max_task_priority
@@ -568,6 +723,28 @@ module omp_lib
       integer(kind=omp_depend_kind), optional :: depobj_list(*)
     end function omp_target_memcpy_rect_async
 
+    function omp_target_memset(ptr, val, count, device_num) bind(c)
+      use, intrinsic :: iso_c_binding, only : c_ptr, c_int, c_size_t
+      type(c_ptr) :: omp_target_memset
+      type(c_ptr), value :: ptr
+      integer(c_int), value :: val
+      integer(c_size_t), value :: count
+      integer(c_int), value :: device_num
+    end function
+
+    function omp_target_memset_async(ptr, val, count, device_num, &
+                                     depobj_count, depobj_list) bind(c)
+      use, intrinsic :: iso_c_binding, only : c_ptr, c_int, c_size_t
+      use omp_lib_kinds
+      type(c_ptr) :: omp_target_memset_async
+      type(c_ptr), value :: ptr
+      integer(c_int), value :: val
+      integer(c_size_t), value :: count
+      integer(c_int), value :: device_num
+      integer(c_int), value :: depobj_count
+      integer(omp_depend_kind), optional :: depobj_list(*)
+    end function
+
     function omp_target_associate_ptr (host_ptr, device_ptr, size, &
                                        device_offset, device_num) bind(c)
       use, intrinsic :: iso_c_binding, only : c_ptr, c_size_t, c_int
@@ -591,6 +768,42 @@ module omp_lib
       integer(kind=c_int), value :: device_num
     end function omp_target_disassociate_ptr
 
+    function omp_get_devices_memspace (ndevs, devs, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_memspace_handle_kind) :: omp_get_devices_memspace
+      integer, intent(in) :: ndevs
+      integer, intent(in) :: devs(*)
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_device_memspace (dev, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_memspace_handle_kind) :: omp_get_device_memspace
+      integer, intent(in) :: dev
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_devices_and_host_memspace (ndevs, devs, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_memspace_handle_kind) :: omp_get_devices_and_host_memspace
+      integer, intent(in) :: ndevs
+      integer, intent(in) :: devs(*)
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_device_and_host_memspace (dev, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_memspace_handle_kind) :: omp_get_device_and_host_memspace
+      integer, intent(in) :: dev
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_devices_all_memspace (memspace)
+      use omp_lib_kinds
+      integer(kind=omp_memspace_handle_kind) :: omp_get_devices_all_memspace
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
     function omp_init_allocator (memspace, ntraits, traits)
       use omp_lib_kinds
       integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
@@ -613,6 +826,62 @@ module omp_lib
       use omp_lib_kinds
       integer(kind=omp_allocator_handle_kind) :: omp_get_default_allocator
     end function omp_get_default_allocator
+
+    function omp_get_devices_allocator (ndevs, devs, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_allocator_handle_kind) :: omp_get_devices_allocator
+      integer, intent(in) :: ndevs
+      integer, intent(in) :: devs(*)
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_device_allocator (dev, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_allocator_handle_kind) :: omp_get_device_allocator
+      integer, intent(in) :: dev
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_devices_and_host_allocator (ndevs, devs, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_allocator_handle_kind) :: omp_get_devices_and_host_allocator
+      integer, intent(in) :: ndevs
+      integer, intent(in) :: devs(*)
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_device_and_host_allocator (dev, memspace)
+      use omp_lib_kinds
+      integer(kind=omp_allocator_handle_kind) :: omp_get_device_and_host_allocator
+      integer, intent(in) :: dev
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_devices_all_allocator (memspace)
+      use omp_lib_kinds
+      integer(kind=omp_allocator_handle_kind) :: omp_get_devices_all_allocator
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function
+
+    function omp_get_memspace_num_resources (memspace)
+      use omp_lib_kinds
+      integer :: omp_get_memspace_num_resources
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function omp_get_memspace_num_resources
+
+    integer (kind=c_size_t) function omp_get_memspace_pagesize(memspace) bind(c)
+      use, intrinsic :: iso_c_binding, only : c_size_t
+      import
+      integer (kind=omp_memspace_handle_kind), intent(in) :: memspace
+    end function omp_get_memspace_pagesize
+
+    function omp_get_submemspace (memspace, num_resources, resources)
+      use omp_lib_kinds
+      integer(kind=omp_memspace_handle_kind) :: omp_get_submemspace
+      integer(kind=omp_memspace_handle_kind), intent(in) :: memspace
+      integer, intent(in):: num_resources
+      integer, intent(in):: resources(*)
+    end function
 
     function omp_alloc (size, allocator) bind(c)
       use, intrinsic :: iso_c_binding, only : c_ptr, c_size_t
@@ -662,6 +931,58 @@ module omp_lib
       integer(kind=c_size_t), value :: size
       integer(omp_allocator_handle_kind), value :: allocator, free_allocator
     end function omp_realloc
+
+    subroutine omp_init_mempartitioner ( partitioner, lifetime, &
+                                         compute_proc, release_proc )
+       use omp_lib_kinds
+       import
+       integer (kind=omp_mempartitioner_kind) :: partitioner
+       integer (kind=omp_lifetime_kind) :: partition
+       procedure(omp_mempartioner_compute_proc_t) :: compute_proc
+       procedure(omp_mempartioner_release_proc_t) :: release_proc
+    end subroutine omp_init_mempartitioner
+
+    subroutine omp_destroy_mempartitioner ( partitioner )
+       use omp_lib_kinds
+       integer (kind=omp_mempartitioner_kind) :: partitioner
+    end subroutine omp_destroy_mempartitioner
+
+    subroutine omp_init_mempartition ( partition, nparts, user_data )
+       use iso_c_binding, only: c_intptr_t
+       use omp_lib_kinds
+       integer (kind=omp_mempartition_kind) :: partition
+       integer (c_intptr_t) :: nparts
+       integer (c_intptr_t) :: user_data
+    end subroutine omp_init_mempartition
+
+    subroutine omp_destroy_mempartition ( partition )
+       use omp_lib_kinds
+       integer (kind=omp_mempartition_kind) partition
+    end subroutine omp_destroy_mempartition
+
+    function omp_mempartition_set_part ( partition, part, resource, size )
+       use, intrinsic :: iso_c_binding, only : c_intptr_t
+       use omp_lib_kinds
+       integer :: omp_mempartition_set_part
+       integer (kind=omp_mempartition_kind) :: partition
+       integer (c_intptr_t) :: part
+       integer (c_intptr_t) :: resource
+       integer (c_intptr_t) :: size
+    end function omp_mempartition_set_part
+
+    function omp_mempartition_get_user_data ( partition )
+       use, intrinsic :: iso_c_binding, only : c_intptr_t
+       use omp_lib_kinds
+       integer (c_intptr_t) :: omp_mempartition_get_user_data
+       integer (kind=omp_mempartition_kind) :: partition
+    end function omp_mempartition_get_user_data
+
+    function omp_memspace_get_pagesize ( memspace )
+       use, intrinsic :: iso_c_binding, only : c_intptr_t
+       use omp_lib_kinds
+       integer (c_intptr_t) :: omp_memspace_get_pagesize
+       integer (kind=omp_memspace_handle_kind) :: memspace
+    end function omp_memspace_get_pagesize
 
     function omp_control_tool (command, modifier)
       use omp_lib_kinds

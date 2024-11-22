@@ -1,5 +1,5 @@
 /*******************************************************************
-* Copyright (c) 1997-2021 OpenMP Architecture Review Board.        *
+* Copyright (c) 1997-2024 OpenMP Architecture Review Board.        *
 *                                                                  *
 * Permission to copy without fee all or part of this material is   *
 * granted, provided the OpenMP Architecture Review Board copyright *
@@ -145,6 +145,16 @@ int omp_in_final(void)
   return 1;   /* true */
 }
 
+int omp_is_free_agent(void)
+{
+  return 0;   /* false */
+}
+
+int omp_ancestor_is_free_agent(int level)
+{
+  return 0;   /* false */
+}
+
 omp_proc_bind_t omp_get_proc_bind(void)
 {
   return omp_proc_bind_false;
@@ -205,7 +215,7 @@ void omp_display_env(int verbose)
   /* Just an example of possible values.  */
   fprintf(stderr, "\
 OPENMP DISPLAY ENVIRONMENT BEGIN\n\
-  _OPENMP = '202011'\n\
+  _OPENMP = '202411'\n\
   OMP_DYNAMIC = 'FALSE'\n\
   OMP_NESTED = 'TRUE'\n\
   OMP_NUM_THREADS = '1'\n\
@@ -730,6 +740,8 @@ int omp_target_memcpy_rect(
   return ret;
 }
 
+
+
 int omp_target_memcpy_async(
   void *dst,
   const void *src,
@@ -769,6 +781,26 @@ int omp_target_memcpy_rect_async(
     dst_device_num, src_device_num);
 }
 
+void * omp_target_memset(
+  void *ptr,
+  int val,
+  size_t count,
+  int device_num
+)
+{
+  return memset(ptr, val, count);
+}
+
+void *omp_target_memset_async(
+  void *ptr, int val, size_t count,
+  int device_num,
+  int depobj_count,
+  omp_depend_t *depobj_list
+)
+{
+  return omp_target_memset(ptr, val, count, device_num);
+}
+
 int omp_target_associate_ptr(
   const void *host_ptr,
   const void *device_ptr,
@@ -794,6 +826,48 @@ void *omp_get_mapped_ptr(const void *ptr, int device_num)
 
 static omp_allocator_handle_t omp_allocator = omp_null_allocator;
 
+extern omp_memspace_handle_t omp_get_devices_memspace(
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_mem_space;
+}
+
+omp_memspace_handle_t omp_get_device_memspace(
+  int dev,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_mem_space;
+}
+
+omp_memspace_handle_t omp_get_devices_and_host_memspace(
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_mem_space;
+}
+
+omp_memspace_handle_t omp_get_device_and_host_memspace(
+  int dev,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_mem_space;
+}
+
+omp_memspace_handle_t omp_get_devices_all_memspace(
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_mem_space;
+}
+
+
 omp_allocator_handle_t omp_init_allocator(
   omp_memspace_handle_t memspace,
   int ntraits,
@@ -815,6 +889,47 @@ void omp_set_default_allocator(omp_allocator_handle_t allocator)
 omp_allocator_handle_t omp_get_default_allocator(void)
 {
   return omp_allocator;
+}
+
+omp_allocator_handle_t omp_get_devices_allocator (
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_allocator;
+}
+
+omp_allocator_handle_t omp_get_device_allocator (
+  int dev,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_allocator;
+}
+
+omp_allocator_handle_t omp_get_devices_and_host_allocator (
+  int ndevs,
+  const int *devs,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_allocator;
+}
+
+omp_allocator_handle_t omp_get_device_and_host_allocator (
+  int dev,
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_allocator;
+}
+
+omp_allocator_handle_t omp_get_devices_all_allocator (
+  omp_memspace_handle_t memspace
+)
+{
+  return omp_null_allocator;
 }
 
 void *omp_alloc(size_t size, omp_allocator_handle_t allocator)
@@ -896,6 +1011,22 @@ void *omp_realloc(
     return NULL;
   }
   return realloc(ptr, size);
+}
+
+int omp_get_memspace_num_resources (
+  omp_memspace_handle_t memspace
+)
+{
+  return 0;
+}
+
+omp_memspace_handle_t omp_get_submemspace (
+  omp_memspace_handle_t memspace,
+  int num_resources,
+  int *resources
+)
+{
+  return omp_null_mem_space;
 }
 
 int omp_control_tool(int command, int modifier, void *arg)
