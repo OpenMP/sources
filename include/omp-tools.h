@@ -723,6 +723,20 @@ typedef void (*ompt_callback_device_load_t)(int device_num,
 typedef void (*ompt_callback_device_unload_t)(int device_num,
                                               uint64_t module_id);
 
+typedef void (*ompt_callback_target_data_op_emi_t) (
+  ompt_scope_endpoint_t endpoint,
+  ompt_data_t *target_task_data,
+  ompt_data_t *target_data,
+  ompt_id_t *host_op_id,
+  ompt_target_data_op_t optype,
+  void *dev1_addr,
+  int dev1_device_num,
+  void *dev2_addr,
+  int dev2_device_num,
+  size_t bytes,
+  const void *codeptr_ra
+);
+
 typedef void (*ompt_callback_target_data_op_t)(
     ompt_id_t target_id, ompt_id_t host_op_id, ompt_target_data_op_t optype,
     void *src_addr, int src_device_num, void *dest_addr, int dest_device_num,
@@ -741,6 +755,16 @@ typedef struct ompt_record_target_data_op_emi_t {
 } ompt_record_target_data_op_emi_t;
 typedef ompt_record_target_data_op_emi_t ompt_record_target_data_op_t; // deprecated
 
+typedef void (*ompt_callback_target_emi_t) (
+  ompt_target_t kind,
+  ompt_scope_endpoint_t endpoint,
+  int device_num,
+  ompt_data_t *task_data,
+  ompt_data_t *target_task_data,
+  ompt_data_t *target_data,
+  const void *codeptr_ra
+);
+
 typedef void (*ompt_callback_target_t)(ompt_target_t kind,
                                        ompt_scope_endpoint_t endpoint,
                                        int device_num, ompt_data_t *task_data,
@@ -756,6 +780,16 @@ typedef struct ompt_record_target_emi_t {
   const void *codeptr_ra;
 } ompt_record_target_emi_t;
 typedef ompt_record_target_emi_t ompt_record_target_t; // deprecated
+
+typedef void (*ompt_callback_target_map_emi_t) (
+  ompt_data_t *target_data,
+  unsigned int nitems,
+  void **host_addr,
+  void **device_addr,
+  size_t *bytes,
+  unsigned int *mapping_flags,
+  const void *codeptr_ra
+);
 
 typedef void (*ompt_callback_target_map_t)(ompt_id_t target_id,
                                            unsigned int nitems,
@@ -774,6 +808,13 @@ typedef struct ompt_record_target_map_emi_t {
   const void *codeptr_ra;
 } ompt_record_target_map_emi_t;
 typedef ompt_record_target_map_emi_t ompt_record_target_map_t; // deprecated
+
+typedef void (*ompt_callback_target_submit_emi_t) (
+  ompt_scope_endpoint_t endpoint,
+  ompt_data_t *target_data,
+  ompt_id_t *host_op_id,
+  unsigned int requested_num_teams
+);
 
 typedef void (*ompt_callback_target_submit_t)(ompt_id_t target_id,
                                               ompt_id_t host_op_id,
